@@ -421,7 +421,7 @@ git commit -m "feat: compile structured proposals with Hermes"
 - Create: `tests/test_risk.py`
 - Create: `tests/fixtures/vault/basic/`
 
-- [ ] **Step 1: Write change compiler tests**
+- [x] **Step 1: Write change compiler tests**
 
 Cover:
 
@@ -438,11 +438,11 @@ Cover:
 - `_meta/index.md` and ingest manifest ordering are deterministic;
 - applying the same change set twice is idempotent.
 
-- [ ] **Step 2: Write risk classifier tests**
+- [x] **Step 2: Write risk classifier tests**
 
 Low risk requires all of: no deletion/move, no governance path, no contradiction/supersede, no confirmed knowledge replacement, extraction quality high/medium, at most 10 modified existing knowledge documents, and a clean validation report. Every violated condition yields a stable risk reason code.
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_compiler.py tests/test_risk.py -q
@@ -450,19 +450,19 @@ Low risk requires all of: no deletion/move, no governance path, no contradiction
 
 Expected: FAIL because compiler and risk classifier are missing.
 
-- [ ] **Step 4: Implement immutable `ChangeSet` generation**
+- [x] **Step 4: Implement immutable `ChangeSet` generation**
 
 Define `FileChange` with operations `create`, `update`, `delete`, `move`; Phase 1 compiler may emit only `create` and `update`. Every path is a normalized POSIX path validated to stay within allowed roots. Every update contains `before_sha256` and `after_sha256` for optimistic concurrency.
 
-- [ ] **Step 5: Implement deterministic source and knowledge Markdown rendering**
+- [x] **Step 5: Implement deterministic source and knowledge Markdown rendering**
 
 Use YAML safe dump with explicit field order, UTF-8, LF, no aliases, and `allow_unicode=True`. Do not serialize model-provided YAML. Source records include normalized text and metadata; original file bytes are copied to the source directory for file input.
 
-- [ ] **Step 6: Implement ingest manifests and indexes**
+- [x] **Step 6: Implement ingest manifests and indexes**
 
 Manifest records source ID, input alias, changed paths, relation changes, warnings, risk reasons, Hermes version/profile, compiler version, schema version, and timestamp. `index.md` groups knowledge by type and sorts by title then ID.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_compiler.py tests/test_risk.py -q

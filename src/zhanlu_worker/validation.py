@@ -6,11 +6,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .vault import (
-    ALLOWED_DOCUMENT_ROOTS,
     KnowledgeRecord,
     VaultDocument,
     VaultFormatError,
     index_documents,
+    iter_vault_markdown_paths,
     parse_vault_markdown,
     replace_relation_block,
 )
@@ -35,21 +35,17 @@ class ValidationReport:
 def validate_vault(vault_root: Path) -> ValidationReport:
     issues: list[ValidationIssue] = []
     documents: list[VaultDocument] = []
-    for root_name in sorted(ALLOWED_DOCUMENT_ROOTS):
-        root = vault_root / root_name
-        if not root.exists():
-            continue
-        for path in sorted(root.rglob("*.md")):
-            try:
-                documents.append(parse_vault_markdown(path, vault_root))
-            except VaultFormatError as error:
-                issues.append(
-                    ValidationIssue(
-                        code=error.code,
-                        message=str(error),
-                        path=_display_path(path, vault_root),
-                    )
+    for path in iter_vault_markdown_paths(vault_root):
+        try:
+            documents.append(parse_vault_markdown(path, vault_root))
+        except VaultFormatError as error:
+            issues.append(
+                ValidationIssue(
+                    code=error.code,
+                    message=str(error),
+                    path=_display_path(path, vault_root),
                 )
+            )
 
     index = index_documents(documents)
     issues.extend(

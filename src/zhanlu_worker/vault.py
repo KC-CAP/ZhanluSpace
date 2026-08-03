@@ -195,14 +195,23 @@ def index_documents(documents: list[VaultDocument]) -> VaultIndex:
 
 
 def build_vault_index(vault_root: Path) -> VaultIndex:
-    documents: list[VaultDocument] = []
-    for root_name in sorted(ALLOWED_DOCUMENT_ROOTS):
+    documents = [
+        parse_vault_markdown(path, vault_root)
+        for path in iter_vault_markdown_paths(vault_root)
+    ]
+    return index_documents(documents)
+
+
+def iter_vault_markdown_paths(vault_root: Path) -> list[Path]:
+    paths: list[Path] = []
+    sources = vault_root / "sources"
+    if sources.exists():
+        paths.extend(sources.rglob("source.md"))
+    for root_name in ("archive", "knowledge"):
         root = vault_root / root_name
         if root.exists():
-            documents.extend(
-                parse_vault_markdown(path, vault_root) for path in sorted(root.rglob("*.md"))
-            )
-    return index_documents(documents)
+            paths.extend(root.rglob("*.md"))
+    return sorted(paths)
 
 
 _RELATION_LABELS: dict[RelationType, str] = {
