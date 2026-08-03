@@ -142,11 +142,11 @@ git commit -m "build: scaffold knowledge worker and Obsidian plugin"
 - Create: `protocol/fixtures/error-event.json`
 - Create: `protocol/README.md`
 
-- [ ] **Step 1: Write Python fixture contract tests**
+- [x] **Step 1: Write Python fixture contract tests**
 
 Test that each request fixture parses into a discriminated Pydantic model and serializes without semantic change. Test rejection of protocol version `2`, relative Vault paths, non-HTTP URL input, invalid branch names, and invalid 40-character commit hashes.
 
-- [ ] **Step 2: Run the Python protocol tests and verify failure**
+- [x] **Step 2: Run the Python protocol tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_protocol.py -q
@@ -154,7 +154,7 @@ Test that each request fixture parses into a discriminated Pydantic model and se
 
 Expected: FAIL because protocol models are missing.
 
-- [ ] **Step 3: Implement Python request/event models**
+- [x] **Step 3: Implement Python request/event models**
 
 Define these public types:
 
@@ -167,11 +167,11 @@ Event = Annotated[StateEvent | CompletedEvent | ErrorEvent, Field(discriminator=
 
 `CompletedEvent.result` must contain `outcome`, `risk`, `branch`, `head`, `changed_files`, `ingest_manifest`, and `risk_reasons`. `outcome` is `merged`, `ready`, or `no_change`.
 
-- [ ] **Step 4: Add TypeScript schema tests against the same fixtures**
+- [x] **Step 4: Add TypeScript schema tests against the same fixtures**
 
 Use Zod schemas and `safeParse`. Verify all six canonical fixtures, plus the same invalid cases used by Python.
 
-- [ ] **Step 5: Run the TypeScript tests and verify failure**
+- [x] **Step 5: Run the TypeScript tests and verify failure**
 
 ```powershell
 pnpm --dir apps/obsidian-plugin test -- protocol.test.ts
@@ -179,11 +179,11 @@ pnpm --dir apps/obsidian-plugin test -- protocol.test.ts
 
 Expected: FAIL because TypeScript protocol schemas are missing.
 
-- [ ] **Step 6: Implement TypeScript schemas and document framing**
+- [x] **Step 6: Implement TypeScript schemas and document framing**
 
 Each process accepts exactly one request JSON object followed by newline on stdin. Stdout contains only newline-delimited protocol events. Diagnostics go to stderr. A terminal `completed` or `error` event is mandatory, and output after a terminal event is invalid.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_protocol.py -q
