@@ -775,7 +775,7 @@ Document installation, Vault initialization, Hermes configuration, Markdown/TXT 
 
 Record direct dependency licenses. Confirm no AGPL/GPL runtime is bundled in Phase 1 and no source content, model cache, credential, `.venv`, `node_modules`, or Obsidian installer is tracked by Git.
 
-- [ ] **Step 3: Run completion verification from a clean checkout state**
+- [x] **Step 3: Run completion verification from a clean checkout state**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
