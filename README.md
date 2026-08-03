@@ -103,7 +103,7 @@ hermes --ignore-rules -z "Return one JSON object with key smoke and value ok."
   -PnpmPath "C:\path\to\pnpm.cmd"
 ```
 
-该命令运行 Python 单元/E2E、覆盖率、插件测试、类型检查、生产构建和 `git diff --check`。当前基线为 96 个 Python 测试、27 个插件测试，Worker 覆盖率 92%。
+该命令运行 Python 单元/E2E、覆盖率、插件测试、类型检查、生产构建和 `git diff --check`。当前基线为 96 个 Python 测试、36 个插件测试，Worker 覆盖率 92%。
 
 ## 设计资料
 

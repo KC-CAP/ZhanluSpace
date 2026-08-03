@@ -2,6 +2,10 @@ import { spawn } from "node:child_process";
 
 import { Notice, PluginSettingTab, Setting, type App } from "obsidian";
 
+import { isSafePythonModule } from "./settings-validation";
+
+export { isSafePythonModule } from "./settings-validation";
+
 
 export interface ZhanluSettings {
   pythonExecutable: string;
@@ -108,6 +112,13 @@ interface EnvironmentCheck {
 }
 
 async function runEnvironmentChecks(settings: ZhanluSettings): Promise<EnvironmentCheck[]> {
+  if (!isSafePythonModule(settings.workerModule)) {
+    return [
+      { name: "Python Worker", ok: false },
+      { name: "Hermes", ok: await exitsSuccessfully(settings.hermesExecutable, ["--version"]) },
+      { name: "Git", ok: await exitsSuccessfully("git", ["--version"]) },
+    ];
+  }
   const checks = [
     ["Python Worker", settings.pythonExecutable, ["-c", `import ${settings.workerModule}`]],
     ["Hermes", settings.hermesExecutable, ["--version"]],
