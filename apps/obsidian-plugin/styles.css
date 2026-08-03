@@ -2,4 +2,86 @@
   display: flex;
   flex-direction: column;
   gap: var(--size-4-3);
+  padding: var(--size-4-4);
+}
+
+.zhanlu-knowledge-view h2,
+.zhanlu-knowledge-view p {
+  margin: 0;
+}
+
+.zhanlu-status {
+  border-left: 3px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: var(--size-4-3);
+  background: var(--background-secondary);
+}
+
+.zhanlu-status--progress {
+  border-color: var(--interactive-accent);
+}
+
+.zhanlu-status--success {
+  border-color: var(--color-green);
+}
+
+.zhanlu-status--warning {
+  border-color: var(--color-orange);
+}
+
+.zhanlu-status--error {
+  border-color: var(--color-red);
+}
+
+.zhanlu-status p,
+.zhanlu-path {
+  margin-top: var(--size-4-1);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.zhanlu-drop-zone {
+  display: flex;
+  min-height: 112px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  padding: var(--size-4-4);
+  text-align: center;
+}
+
+.zhanlu-drop-zone.is-dragover {
+  border-color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+}
+
+.zhanlu-separator {
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.zhanlu-url-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+}
+
+.zhanlu-url-label input {
+  width: 100%;
+}
+
+.zhanlu-facts {
+  max-height: 240px;
+  margin: 0;
+  overflow-y: auto;
+  padding-left: var(--size-4-5);
+  color: var(--text-muted);
+}
+
+.zhanlu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
 }

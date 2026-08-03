@@ -643,11 +643,11 @@ git commit -m "feat: connect Obsidian to the local worker"
 - Create: `apps/obsidian-plugin/tests/presenter.test.ts`
 - Modify: `apps/obsidian-plugin/styles.css`
 
-- [ ] **Step 1: Write pure presenter tests**
+- [x] **Step 1: Write pure presenter tests**
 
 Test Chinese labels and actions for idle, running states, paused/error, low-risk merged, high-risk ready, and no-change. A high-risk result must show branch, changed files, risk reasons, `打开 Git Diff` and `确认合入` actions. Model/profile/data destination text must appear before start.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 pnpm --dir apps/obsidian-plugin test -- presenter.test.ts
@@ -655,11 +655,11 @@ pnpm --dir apps/obsidian-plugin test -- presenter.test.ts
 
 Expected: FAIL because presentation logic is missing.
 
-- [ ] **Step 3: Implement plugin settings**
+- [x] **Step 3: Implement plugin settings**
 
 Settings are local Obsidian plugin data only and include Python executable, Worker module, Hermes executable, optional Hermes profile, job timeout, and the explicit personal-data policy label. Never store API keys or GitHub tokens. Add a `检测环境` action that runs version/preflight checks without importing content.
 
-- [ ] **Step 4: Implement the import side view**
+- [x] **Step 4: Implement the import side view**
 
 Register a ribbon icon and command `打开斩律知识导入`. The view provides:
 
@@ -672,11 +672,11 @@ Register a ribbon icon and command `打开斩律知识导入`. The view provides
 - high-risk confirmation button issuing a `confirm` request with exact branch/head;
 - a Git Diff button invoking the configured system Git GUI or copying the safe `git diff main...<branch>` command, without running an arbitrary configured shell string.
 
-- [ ] **Step 5: Wire drag-and-drop safely**
+- [x] **Step 5: Wire drag-and-drop safely**
 
 Use desktop `File.path`; reject directories, multiple files, unsupported extensions, and missing paths in the UI before spawning Worker. The Worker remains the security authority and repeats validation.
 
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 ```powershell
 pnpm --dir apps/obsidian-plugin test
