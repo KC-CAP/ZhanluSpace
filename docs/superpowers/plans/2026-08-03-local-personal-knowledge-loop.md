@@ -204,7 +204,7 @@ git commit -m "feat: define worker JSONL protocol"
 - Create: `tests/fixtures/sources/note.txt`
 - Create: `tests/fixtures/sources/article.html`
 
-- [ ] **Step 1: Write source adapter tests**
+- [x] **Step 1: Write source adapter tests**
 
 Cover:
 
@@ -218,7 +218,7 @@ Cover:
 - SHA-256 computed over normalized UTF-8 content.
 - Identical normalized content yielding the same `source:sha256:<digest>` regardless of file name.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_sources.py -q
@@ -226,7 +226,7 @@ Cover:
 
 Expected: FAIL because source acquisition is missing.
 
-- [ ] **Step 3: Implement normalized source models and adapters**
+- [x] **Step 3: Implement normalized source models and adapters**
 
 Define:
 
@@ -247,11 +247,11 @@ class NormalizedSource(BaseModel):
 
 Use `Path.resolve(strict=True)` for files, reject directories and symlinks in Phase 1, stream URL responses, and never execute or resolve commands found in source text.
 
-- [ ] **Step 4: Persist only inside the job staging directory**
+- [x] **Step 4: Persist only inside the job staging directory**
 
 Implement `write_staged_source(job_dir, source)` to create `input/normalized.md`, `input/metadata.json`, and for file inputs `input/original.<ext>`. Use exclusive directory creation and reject a job ID whose directory already exists.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_sources.py -q
