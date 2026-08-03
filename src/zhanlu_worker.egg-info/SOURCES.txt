@@ -1,8 +1,0 @@
-pyproject.toml
-src/zhanlu_worker.egg-info/PKG-INFO
-src/zhanlu_worker.egg-info/SOURCES.txt
-src/zhanlu_worker.egg-info/dependency_links.txt
-src/zhanlu_worker.egg-info/entry_points.txt
-src/zhanlu_worker.egg-info/requires.txt
-src/zhanlu_worker.egg-info/top_level.txt
-tests/test_package.py
