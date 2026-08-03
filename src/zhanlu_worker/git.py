@@ -47,6 +47,9 @@ class GitController:
         self.clock = clock
         self.timeout_seconds = timeout_seconds
 
+    def preflight(self) -> None:
+        self._preflight()
+
     def apply(self, change_set: ChangeSet, risk: RiskAssessment) -> GitResult:
         self._preflight()
         branch = self._branch_name(change_set.ingest_id)

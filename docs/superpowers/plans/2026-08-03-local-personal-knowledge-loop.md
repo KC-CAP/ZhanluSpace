@@ -531,7 +531,7 @@ git commit -m "feat: apply knowledge changes as safe Git transactions"
 - Create: `tests/test_jobs.py`
 - Create: `tests/test_cli.py`
 
-- [ ] **Step 1: Write state-machine and orchestration tests**
+- [x] **Step 1: Write state-machine and orchestration tests**
 
 Test valid transition sequences:
 
@@ -543,11 +543,11 @@ queued -> acquiring -> paused
 
 Reject skipped, repeated, or post-terminal transitions. Test duplicate source, Hermes timeout, invalid proposal, validation failure, dirty repo, low-risk merge, high-risk ready, and confirm flows using fake source/Hermes adapters and temporary Git repositories.
 
-- [ ] **Step 2: Write CLI framing tests**
+- [x] **Step 2: Write CLI framing tests**
 
 Test exactly one stdin request, ordered stdout JSONL events, stderr-only logs, exit code `0` for terminal `completed`, exit code `1` for terminal `error`, malformed input error, EOF handling, and no output after terminal event.
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_jobs.py tests/test_cli.py -q
@@ -555,15 +555,15 @@ Test exactly one stdin request, ordered stdout JSONL events, stderr-only logs, e
 
 Expected: FAIL because orchestration is missing.
 
-- [ ] **Step 4: Implement `JobRunner` and dependency injection**
+- [x] **Step 4: Implement `JobRunner` and dependency injection**
 
 `JobRunner` owns acquisition, context selection, Hermes invocation, compilation, validation, risk classification, and Git application. Adapters are constructor dependencies so unit tests never call the network, real Hermes, or the user's repository.
 
-- [ ] **Step 5: Implement CLI logging and cancellation behavior**
+- [x] **Step 5: Implement CLI logging and cancellation behavior**
 
 Use structured event serialization on stdout and concise diagnostic logs on stderr. Handle Ctrl+C and parent-process termination by stopping child processes, marking the job paused, and leaving validated staging files for diagnosis without applying them to the Vault.
 
-- [ ] **Step 6: Run the full Python suite and commit**
+- [x] **Step 6: Run the full Python suite and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
