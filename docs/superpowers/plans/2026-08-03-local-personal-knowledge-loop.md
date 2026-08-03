@@ -18,7 +18,7 @@
 - 不覆盖用户未授权的脏工作区；Worker 在发现 `git status --porcelain` 非空时必须在写入前失败。
 - 所有子进程使用参数数组启动，禁止拼接 Shell 命令。
 - `.knowledge-runtime/`、模型响应、网页缓存、插件本地设置与凭据不进入 Git。
-- 本阶段使用 `npm` 与 Python `venv`，不引入 Docker、数据库、常驻端口或后台服务。
+- 本阶段使用 `pnpm` 与 Python `venv`，不引入 Docker、数据库、常驻端口或后台服务。
 
 ---
 
@@ -44,7 +44,7 @@
 - Create: `protocol/fixtures/confirm.json`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Add the minimal Python smoke test**
+- [x] **Step 1: Add the minimal Python smoke test**
 
 Create `tests/test_package.py`:
 
@@ -55,7 +55,7 @@ def test_package_exposes_version() -> None:
     assert zhanlu_worker.__version__ == "0.1.0"
 ```
 
-- [ ] **Step 2: Run the smoke test and verify that it fails**
+- [x] **Step 2: Run the smoke test and verify that it fails**
 
 Run:
 
@@ -68,11 +68,11 @@ py -3.11 -m venv .venv
 
 Expected: FAIL because `zhanlu_worker` or `__version__` does not exist.
 
-- [ ] **Step 3: Implement the package and command entry point**
+- [x] **Step 3: Implement the package and command entry point**
 
 Define `__version__ = "0.1.0"` and a console script named `zhanlu-worker` that calls `zhanlu_worker.__main__:main`. Add runtime dependencies `pydantic>=2.11,<3`, `PyYAML>=6,<7`, `httpx>=0.28,<1`, `beautifulsoup4>=4.13,<5`; add development dependencies `pytest>=8,<9`, `pytest-cov>=6,<7`, and `respx>=0.22,<1`.
 
-- [ ] **Step 4: Scaffold the desktop-only Obsidian plugin**
+- [x] **Step 4: Scaffold the desktop-only Obsidian plugin**
 
 Use the official sample plugin build shape. Set:
 
@@ -88,9 +88,9 @@ Use the official sample plugin build shape. Set:
 }
 ```
 
-Add scripts `dev`, `build`, `test`, `lint`, and `typecheck`. Pin a committed `package-lock.json` by running `npm install` in the plugin directory.
+Add scripts `dev`, `build`, `test`, `lint`, and `typecheck`. Pin a committed `pnpm-lock.yaml` by running `pnpm install` in the plugin directory.
 
-- [ ] **Step 5: Add canonical request fixtures**
+- [x] **Step 5: Add canonical request fixtures**
 
 The three fixtures must use protocol version `1`, UUID job IDs, absolute example vault paths, and these request types:
 
@@ -106,7 +106,7 @@ The three fixtures must use protocol version `1`, UUID job IDs, absolute example
 {"version":1,"type":"confirm","job_id":"33333333-3333-4333-8333-333333333333","vault_path":"C:\\Vault","branch":"knowledge/20260803-confirm","expected_head":"0123456789012345678901234567890123456789"}
 ```
 
-- [ ] **Step 6: Extend ignore rules and verify both toolchains**
+- [x] **Step 6: Extend ignore rules and verify both toolchains**
 
 Ignore `.venv/`, `__pycache__/`, `.pytest_cache/`, `.coverage`, `.knowledge-runtime/`, plugin `node_modules/`, plugin `main.js`, plugin `data.json`, and Obsidian workspace state. Do not ignore protocol fixtures or Vault template files.
 
@@ -114,13 +114,13 @@ Run:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_package.py -q
-npm --prefix apps/obsidian-plugin run typecheck
-npm --prefix apps/obsidian-plugin run build
+pnpm --dir apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin run build
 ```
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the scaffold**
+- [x] **Step 7: Commit the scaffold**
 
 ```powershell
 git add .gitignore pyproject.toml src tests apps protocol
@@ -174,7 +174,7 @@ Use Zod schemas and `safeParse`. Verify all six canonical fixtures, plus the sam
 - [ ] **Step 5: Run the TypeScript tests and verify failure**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- protocol.test.ts
+pnpm --dir apps/obsidian-plugin test -- protocol.test.ts
 ```
 
 Expected: FAIL because TypeScript protocol schemas are missing.
@@ -187,7 +187,7 @@ Each process accepts exactly one request JSON object followed by newline on stdi
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_protocol.py -q
-npm --prefix apps/obsidian-plugin test -- protocol.test.ts
+pnpm --dir apps/obsidian-plugin test -- protocol.test.ts
 git add src tests apps/obsidian-plugin protocol
 git commit -m "feat: define worker JSONL protocol"
 ```
@@ -597,7 +597,7 @@ Cover:
 - [ ] **Step 2: Run the test and verify failure**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- worker-client.test.ts
+pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
 ```
 
 Expected: FAIL because the worker client is missing.
@@ -624,8 +624,8 @@ Use Electron/Node `child_process.spawn` with `shell: false`, hidden window on Wi
 - [ ] **Step 4: Verify and commit**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- worker-client.test.ts
-npm --prefix apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
+pnpm --dir apps/obsidian-plugin run typecheck
 git add apps/obsidian-plugin
 git commit -m "feat: connect Obsidian to the local worker"
 ```
@@ -650,7 +650,7 @@ Test Chinese labels and actions for idle, running states, paused/error, low-risk
 - [ ] **Step 2: Run tests and verify failure**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- presenter.test.ts
+pnpm --dir apps/obsidian-plugin test -- presenter.test.ts
 ```
 
 Expected: FAIL because presentation logic is missing.
@@ -679,9 +679,9 @@ Use desktop `File.path`; reject directories, multiple files, unsupported extensi
 - [ ] **Step 6: Verify and commit**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test
-npm --prefix apps/obsidian-plugin run typecheck
-npm --prefix apps/obsidian-plugin run build
+pnpm --dir apps/obsidian-plugin test
+pnpm --dir apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin run build
 git add apps/obsidian-plugin
 git commit -m "feat: add Obsidian knowledge import experience"
 ```
@@ -721,9 +721,9 @@ Use dependency configuration only: the same CLI, schemas, compiler, validator, a
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest --cov=zhanlu_worker --cov-report=term-missing
-npm --prefix apps/obsidian-plugin test
-npm --prefix apps/obsidian-plugin run typecheck
-npm --prefix apps/obsidian-plugin run build
+pnpm --dir apps/obsidian-plugin test
+pnpm --dir apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin run build
 git diff --check
 ```
 

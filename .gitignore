@@ -1,2 +1,12 @@
 .superpowers/
 .worktrees/
+.venv/
+__pycache__/
+.pytest_cache/
+.coverage
+.knowledge-runtime/
+apps/obsidian-plugin/node_modules/
+apps/obsidian-plugin/main.js
+apps/obsidian-plugin/data.json
+.obsidian/workspace*.json
+.obsidian/cache/

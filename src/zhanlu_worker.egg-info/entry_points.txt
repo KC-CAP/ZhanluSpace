@@ -1,0 +1,2 @@
+[console_scripts]
+zhanlu-worker = zhanlu_worker.__main__:main
