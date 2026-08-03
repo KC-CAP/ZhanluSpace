@@ -767,11 +767,11 @@ git commit -m "test: verify the local personal knowledge loop"
 - Modify: `docs/development.md`
 - Modify: `docs/manual-test.md`
 
-- [ ] **Step 1: Document the supported workflow and explicit limits**
+- [x] **Step 1: Document the supported workflow and explicit limits**
 
 Document installation, Vault initialization, Hermes configuration, Markdown/TXT drag import, URL import, progress states, low-risk auto-merge, high-risk confirmation, recovery, logs, and uninstall. State plainly that PDF/DOCX/OCR and GitHub team PR are not in this phase.
 
-- [ ] **Step 2: Audit licenses and packaged dependencies**
+- [x] **Step 2: Audit licenses and packaged dependencies**
 
 Record direct dependency licenses. Confirm no AGPL/GPL runtime is bundled in Phase 1 and no source content, model cache, credential, `.venv`, `node_modules`, or Obsidian installer is tracked by Git.
 
@@ -786,14 +786,14 @@ git log --oneline --decorate -12
 
 Expected: verification passes; the worktree is clean after the documentation commit.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ```powershell
 git add README.md docs
 git commit -m "docs: explain the personal knowledge workflow"
 ```
 
-- [ ] **Step 5: Produce the next implementation plans**
+- [x] **Step 5: Produce the next implementation plans**
 
 Create separate reviewed plans for:
 
