@@ -280,7 +280,7 @@ git commit -m "feat: normalize text files and web sources"
 - Create: `vault-template/sources/web/.gitkeep`
 - Create: `vault-template/.gitignore`
 
-- [ ] **Step 1: Write parsing and validation tests**
+- [x] **Step 1: Write parsing and validation tests**
 
 Create fixtures in temporary Vaults and test:
 
@@ -294,7 +294,7 @@ Create fixtures in temporary Vaults and test:
 - duplicate IDs, malformed YAML, broken targets, and path traversal fail with machine-readable codes;
 - relation display blocks are derived and exactly match Frontmatter relations.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_vault.py tests/test_validation.py -q
@@ -302,11 +302,11 @@ Create fixtures in temporary Vaults and test:
 
 Expected: FAIL because Vault parsing and validation are missing.
 
-- [ ] **Step 3: Implement Vault records and repository scan**
+- [x] **Step 3: Implement Vault records and repository scan**
 
 Define `SourceRecord`, `KnowledgeRecord`, `Relation`, `VaultIndex`, `ValidationIssue`, and `ValidationReport`. Use `yaml.safe_load`; require a single YAML mapping between opening and closing `---`; reject YAML object tags and aliases exceeding the configured safe limits.
 
-- [ ] **Step 4: Implement relation display generation**
+- [x] **Step 4: Implement relation display generation**
 
 Only replace content between:
 
@@ -317,11 +317,11 @@ Only replace content between:
 
 Resolve target display names by stable ID through `VaultIndex`. Preserve all text outside the two markers byte-for-byte. Sort relations by relation type then target ID to make output deterministic.
 
-- [ ] **Step 5: Add the Vault template**
+- [x] **Step 5: Add the Vault template**
 
 The template documents stable IDs, source citations, formal relation semantics, mutable directory taxonomy, and the generated-block rule. Its `.gitignore` excludes `.knowledge-runtime/`, `.obsidian/workspace*.json`, `.obsidian/cache/`, and plugin `data.json` while allowing required shared Obsidian configuration later.
 
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_vault.py tests/test_validation.py -q
