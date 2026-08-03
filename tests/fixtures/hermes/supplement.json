@@ -1,0 +1,1 @@
+{"schema_version":1,"source_id":"source:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","actions":[{"action":"supplement","target_id":"topic:retrieval","confidence":0.76,"content":"新来源补充了混合召回的实现条件。","citations":["source:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],"relations":[]}]}

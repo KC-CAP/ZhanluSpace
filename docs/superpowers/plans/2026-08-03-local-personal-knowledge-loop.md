@@ -347,11 +347,11 @@ git commit -m "feat: validate portable knowledge vaults"
 - Create: `tests/fixtures/bin/fake-hermes.py`
 - Create: `docs/development.md`
 
-- [ ] **Step 1: Write proposal schema tests**
+- [x] **Step 1: Write proposal schema tests**
 
 The proposal schema must support actions `create`, `supplement`, `support`, `contradict`, `supersede`, `cite-only`, and `no-change`. Reject unknown actions, unknown relation types, duplicate target IDs, paths supplied by the model, knowledge IDs outside `[a-z][a-z0-9-]{2,79}:[a-z0-9][a-z0-9-]{1,119}`, confidence outside `[0,1]`, and citations not equal to the current source ID.
 
-- [ ] **Step 2: Write Hermes process tests using the fake executable**
+- [x] **Step 2: Write Hermes process tests using the fake executable**
 
 Test:
 
@@ -364,7 +364,7 @@ Test:
 - timeout kills the process tree and returns retryable error `HERMES_TIMEOUT`;
 - non-zero exit, empty response, malformed JSON, and schema-invalid proposal never reach Vault rendering.
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_proposals.py tests/test_hermes.py -q
@@ -372,25 +372,25 @@ Test:
 
 Expected: FAIL because proposal and Hermes adapter code are missing.
 
-- [ ] **Step 4: Implement the strict proposal schema**
+- [x] **Step 4: Implement the strict proposal schema**
 
 Hermes may propose semantic content, stable IDs, titles, document types, statuses, confidence, citations, and formal relations. It may not propose filesystem paths, Git commands, frontmatter text, HTML comments, or arbitrary YAML.
 
-- [ ] **Step 5: Implement one-shot Hermes invocation**
+- [x] **Step 5: Implement one-shot Hermes invocation**
 
-Use the official CLI in one-shot mode with a configurable executable and profile. The initial command contract is:
+Use the official CLI's pure one-shot mode with a configurable executable and profile. The command contract is:
 
 ```text
-hermes --ignore-rules --pass-session-id chat --quiet --json --max-turns 1 --source tool -q <prompt>
+hermes --ignore-rules -z <prompt>
 ```
 
-When a profile is configured, insert `--profile <name>` before `chat`. Set a 120-second default timeout. Parse the documented JSON response envelope, then locate exactly one JSON object in the final assistant content. Do not pass `--yolo`; do not expose Git or Vault paths in the prompt.
+When a profile is configured, insert `--profile <name>` before `--ignore-rules`. Set a 120-second default timeout. The documented `-z` mode writes only final response text; accept exactly one JSON object, optionally enclosed by one JSON code fence. Do not pass `--yolo`; do not expose Git or Vault paths in the prompt.
 
-- [ ] **Step 6: Implement lexical context selection**
+- [x] **Step 6: Implement lexical context selection**
 
 Tokenize normalized text and knowledge titles/body into lowercase alphanumeric/CJK terms. Select at most 20 existing documents by deterministic overlap score, then stable ID. Cap context at 60,000 UTF-8 bytes and include each selected stable ID, title, status, source IDs, relations, and bounded body excerpt. Vector retrieval is explicitly deferred.
 
-- [ ] **Step 7: Verify against an installed Hermes CLI when available**
+- [x] **Step 7: Verify against an installed Hermes CLI when available**
 
 Run:
 
@@ -401,7 +401,7 @@ hermes doctor
 
 If Hermes is not installed, install from the official NousResearch distribution, rerun both commands, and record the CLI version in `docs/development.md`. Use a harmless one-shot probe containing no private data to freeze the actual JSON envelope in an integration fixture.
 
-- [ ] **Step 8: Verify and commit**
+- [x] **Step 8: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_proposals.py tests/test_hermes.py -q
