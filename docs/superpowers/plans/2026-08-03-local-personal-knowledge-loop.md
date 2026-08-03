@@ -581,7 +581,7 @@ git commit -m "feat: orchestrate personal knowledge import jobs"
 - Create: `apps/obsidian-plugin/tests/worker-client.test.ts`
 - Create: `apps/obsidian-plugin/tests/fixtures/fake-worker.mjs`
 
-- [ ] **Step 1: Write worker process client tests**
+- [x] **Step 1: Write worker process client tests**
 
 Cover:
 
@@ -594,7 +594,7 @@ Cover:
 - process tree terminated on plugin unload;
 - no use of a shell and no network port.
 
-- [ ] **Step 2: Run the test and verify failure**
+- [x] **Step 2: Run the test and verify failure**
 
 ```powershell
 pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
@@ -602,7 +602,7 @@ pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
 
 Expected: FAIL because the worker client is missing.
 
-- [ ] **Step 3: Implement `WorkerClient`**
+- [x] **Step 3: Implement `WorkerClient`**
 
 Expose:
 
@@ -621,7 +621,7 @@ export interface RunningJob {
 
 Use Electron/Node `child_process.spawn` with `shell: false`, hidden window on Windows, UTF-8 streaming decoder, and an `AbortSignal`-aware lifecycle.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
 pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
