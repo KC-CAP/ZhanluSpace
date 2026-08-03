@@ -479,7 +479,7 @@ git commit -m "feat: compile deterministic knowledge change sets"
 - Create: `src/zhanlu_worker/git.py`
 - Create: `tests/test_git.py`
 
-- [ ] **Step 1: Write Git integration tests in temporary repositories**
+- [x] **Step 1: Write Git integration tests in temporary repositories**
 
 Cover:
 
@@ -496,7 +496,7 @@ Cover:
 - stale head, divergent main, merge conflict, failed commit, and interrupted apply never leave a partially staged Vault;
 - commit message contains ingest ID and source ID but no source body.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_git.py -q
@@ -504,15 +504,15 @@ Cover:
 
 Expected: FAIL because Git controller is missing.
 
-- [ ] **Step 3: Implement a subprocess-only Git client**
+- [x] **Step 3: Implement a subprocess-only Git client**
 
 All Git calls use `subprocess.run(args, cwd=vault, check=False, shell=False)` where `args` is a validated list of strings. Set `GIT_TERMINAL_PROMPT=0`. Enforce explicit timeouts and return typed errors with redacted output. Never call reset-hard, clean, checkout-discard, force-push, or branch deletion containing unmerged work.
 
-- [ ] **Step 4: Implement transactional apply**
+- [x] **Step 4: Implement transactional apply**
 
 Before changing the worktree, verify all `before_sha256` values. Copy changed files to a transaction backup under the job directory. On any pre-commit failure, restore only files owned by that transaction and verify hashes. After a successful proposal commit, switch back to `main`; low-risk changes merge with `--ff-only`, while high-risk changes return branch/head for later confirmation.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_git.py -q
