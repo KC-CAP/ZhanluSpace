@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from typing import TextIO
@@ -66,11 +67,13 @@ def _write_malformed(stdout: TextIO, message: str) -> int:
 
 def build_runner() -> JobRunner:
     executable = os.environ.get("ZHANLU_HERMES_EXECUTABLE", "hermes")
+    launcher_args = _hermes_launcher_args()
     profile = os.environ.get("ZHANLU_HERMES_PROFILE") or None
     timeout = float(os.environ.get("ZHANLU_HERMES_TIMEOUT_SECONDS", "120"))
     adapter = HermesAdapter(
         HermesConfig(
             executable=executable,
+            launcher_args=launcher_args,
             profile=profile,
             timeout_seconds=timeout,
         )
@@ -82,7 +85,32 @@ def build_runner() -> JobRunner:
     )
 
 
+def _hermes_launcher_args() -> tuple[str, ...]:
+    """Read an optional JSON argument array without invoking a command shell."""
+    raw = os.environ.get("ZHANLU_HERMES_LAUNCHER_ARGS")
+    if not raw:
+        return ()
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise ValueError("ZHANLU_HERMES_LAUNCHER_ARGS must be a JSON array") from error
+    if (
+        not isinstance(value, list)
+        or len(value) > 16
+        or any(not isinstance(item, str) or not item or "\0" in item for item in value)
+    ):
+        raise ValueError(
+            "ZHANLU_HERMES_LAUNCHER_ARGS must contain 1-16 non-empty strings"
+        )
+    return tuple(value)
+
+
 def main() -> None:
+    # The plugin protocol is UTF-8 on every platform, independent of the
+    # Windows console code page inherited by a Python subprocess.
+    sys.stdin.reconfigure(encoding="utf-8", errors="strict")
+    sys.stdout.reconfigure(encoding="utf-8", errors="strict", newline="\n")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace", newline="\n")
     raise SystemExit(run_cli(sys.stdin, sys.stdout, sys.stderr, build_runner()))
 
 

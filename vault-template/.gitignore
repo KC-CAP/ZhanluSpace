@@ -1,4 +1,5 @@
 .knowledge-runtime/
 .obsidian/workspace*.json
 .obsidian/cache/
-.obsidian/plugins/zhanlu-knowledge/data.json
+.obsidian/community-plugins.json
+.obsidian/plugins/zhanlu-knowledge/

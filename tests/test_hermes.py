@@ -88,20 +88,20 @@ def test_invokes_one_shot_hermes_in_job_directory_with_bounded_prompt(
 
 
 @pytest.mark.parametrize(
-    ("mode", "code", "retryable"),
+    ("mode", "code", "retryable", "timeout"),
     (
-        ("invalid-json", "HERMES_INVALID_JSON", False),
-        ("invalid-proposal", "HERMES_INVALID_PROPOSAL", False),
-        ("exit", "HERMES_FAILED", True),
-        ("agent-failed", "HERMES_FAILED", True),
-        ("sleep", "HERMES_TIMEOUT", True),
+        ("invalid-json", "HERMES_INVALID_JSON", False, 2.0),
+        ("invalid-proposal", "HERMES_INVALID_PROPOSAL", False, 2.0),
+        ("exit", "HERMES_FAILED", True, 2.0),
+        ("agent-failed", "HERMES_FAILED", True, 2.0),
+        ("sleep", "HERMES_TIMEOUT", True, 0.05),
     ),
 )
 def test_rejects_failed_or_invalid_hermes_results(
-    tmp_path: Path, mode: str, code: str, retryable: bool
+    tmp_path: Path, mode: str, code: str, retryable: bool, timeout: float
 ) -> None:
     with pytest.raises(HermesError) as caught:
-        _adapter(tmp_path, mode=mode, timeout=0.05).compile(_source(), [], tmp_path)
+        _adapter(tmp_path, mode=mode, timeout=timeout).compile(_source(), [], tmp_path)
 
     assert caught.value.code == code
     assert caught.value.retryable is retryable

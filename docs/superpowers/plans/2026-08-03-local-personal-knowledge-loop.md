@@ -699,11 +699,11 @@ git commit -m "feat: add Obsidian knowledge import experience"
 - Modify: `docs/development.md`
 - Create: `docs/manual-test.md`
 
-- [ ] **Step 1: Write the end-to-end test first**
+- [x] **Step 1: Write the end-to-end test first**
 
 The test creates a temporary Vault from `vault-template`, initializes `main`, configures a deterministic fake Hermes executable, runs a file import through the real CLI, asserts the exact event sequence, verifies the low-risk commit is merged into `main`, validates the entire Vault, reruns the same source, and verifies no duplicate knowledge or source record is created.
 
-- [ ] **Step 2: Run the E2E test and verify failure**
+- [x] **Step 2: Run the E2E test and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/e2e/test_personal_loop.py -q
@@ -711,11 +711,11 @@ The test creates a temporary Vault from `vault-template`, initializes `main`, co
 
 Expected: FAIL until all real components are correctly connected.
 
-- [ ] **Step 3: Make the E2E test pass without test-only production branches**
+- [x] **Step 3: Make the E2E test pass without test-only production branches**
 
 Use dependency configuration only: the same CLI, schemas, compiler, validator, and Git controller run in both tests and production. The fake Hermes executable only replaces the external model process.
 
-- [ ] **Step 4: Add a single verification entry point**
+- [x] **Step 4: Add a single verification entry point**
 
 `scripts/verify.ps1` must stop on error and run:
 
@@ -727,19 +727,21 @@ pnpm --dir apps/obsidian-plugin run build
 git diff --check
 ```
 
-- [ ] **Step 5: Add a safe plugin installer**
+- [x] **Step 5: Add a safe plugin installer**
 
 `scripts/install-plugin.ps1` accepts a mandatory explicit Vault path, resolves it, requires `.obsidian/`, creates only `.obsidian/plugins/zhanlu-knowledge/`, and copies `main.js`, `manifest.json`, and `styles.css`. It must reject the repository root, home directory, drive root, missing build outputs, and unresolved paths. It must not launch Obsidian automatically.
 
-- [ ] **Step 6: Install or update Obsidian for manual testing**
+- [x] **Step 6: Install or update Obsidian for manual testing**
 
 If Obsidian is absent, download it from the official Obsidian distribution, verify the downloaded installer is signed by Dynalist Inc. or the current official publisher, install it, and record the tested Obsidian version. Do not install community plugins unrelated to this project.
 
 - [ ] **Step 7: Run a real Hermes manual smoke test**
 
+Blocked on this machine: Hermes 0.19.1 is installed and reaches the one-shot inference boundary, but no local/BYOK inference provider is configured. The deterministic end-to-end substitute passes; `docs/development.md` records the honest real-provider prerequisite.
+
 Create a disposable test Vault containing no private data. Import `tests/fixtures/e2e/source.md` with the configured real Hermes profile. Verify the proposal is schema-valid, the source is traceable, the relation display matches Frontmatter, and the Git commit/merge behavior matches risk. Delete only the disposable Vault after resolving and verifying its absolute test path.
 
-- [ ] **Step 8: Run the full verification suite**
+- [x] **Step 8: Run the full verification suite**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
@@ -748,7 +750,7 @@ git status --short
 
 Expected: all tests/builds pass and only intended files are changed.
 
-- [ ] **Step 9: Commit verification assets**
+- [x] **Step 9: Commit verification assets**
 
 ```powershell
 git add scripts tests/e2e tests/fixtures/e2e docs/development.md docs/manual-test.md
