@@ -1,0 +1,1 @@
+{"version":1,"type":"completed","job_id":"33333333-3333-4333-8333-333333333333","result":{"outcome":"ready","risk":"high","branch":"knowledge/20260803-confirm","head":"0123456789012345678901234567890123456789","changed_files":["knowledge/topics/example.md"],"ingest_manifest":"_meta/ingests/33333333-3333-4333-8333-333333333333.md","risk_reasons":["CONTRADICTS_CONFIRMED"]}}

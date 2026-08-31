@@ -1,0 +1,9 @@
+{
+  "id": "zhanlu-knowledge",
+  "name": "Zhanlu Knowledge",
+  "version": "0.1.0",
+  "minAppVersion": "1.6.0",
+  "description": "Compile files and web pages into a Git-backed knowledge vault.",
+  "author": "ZhanluSpace",
+  "isDesktopOnly": true
+}

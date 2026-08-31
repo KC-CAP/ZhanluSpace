@@ -18,7 +18,7 @@
 - 不覆盖用户未授权的脏工作区；Worker 在发现 `git status --porcelain` 非空时必须在写入前失败。
 - 所有子进程使用参数数组启动，禁止拼接 Shell 命令。
 - `.knowledge-runtime/`、模型响应、网页缓存、插件本地设置与凭据不进入 Git。
-- 本阶段使用 `npm` 与 Python `venv`，不引入 Docker、数据库、常驻端口或后台服务。
+- 本阶段使用 `pnpm` 与 Python `venv`，不引入 Docker、数据库、常驻端口或后台服务。
 
 ---
 
@@ -44,7 +44,7 @@
 - Create: `protocol/fixtures/confirm.json`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Add the minimal Python smoke test**
+- [x] **Step 1: Add the minimal Python smoke test**
 
 Create `tests/test_package.py`:
 
@@ -55,7 +55,7 @@ def test_package_exposes_version() -> None:
     assert zhanlu_worker.__version__ == "0.1.0"
 ```
 
-- [ ] **Step 2: Run the smoke test and verify that it fails**
+- [x] **Step 2: Run the smoke test and verify that it fails**
 
 Run:
 
@@ -68,11 +68,11 @@ py -3.11 -m venv .venv
 
 Expected: FAIL because `zhanlu_worker` or `__version__` does not exist.
 
-- [ ] **Step 3: Implement the package and command entry point**
+- [x] **Step 3: Implement the package and command entry point**
 
 Define `__version__ = "0.1.0"` and a console script named `zhanlu-worker` that calls `zhanlu_worker.__main__:main`. Add runtime dependencies `pydantic>=2.11,<3`, `PyYAML>=6,<7`, `httpx>=0.28,<1`, `beautifulsoup4>=4.13,<5`; add development dependencies `pytest>=8,<9`, `pytest-cov>=6,<7`, and `respx>=0.22,<1`.
 
-- [ ] **Step 4: Scaffold the desktop-only Obsidian plugin**
+- [x] **Step 4: Scaffold the desktop-only Obsidian plugin**
 
 Use the official sample plugin build shape. Set:
 
@@ -88,9 +88,9 @@ Use the official sample plugin build shape. Set:
 }
 ```
 
-Add scripts `dev`, `build`, `test`, `lint`, and `typecheck`. Pin a committed `package-lock.json` by running `npm install` in the plugin directory.
+Add scripts `dev`, `build`, `test`, `lint`, and `typecheck`. Pin a committed `pnpm-lock.yaml` by running `pnpm install` in the plugin directory.
 
-- [ ] **Step 5: Add canonical request fixtures**
+- [x] **Step 5: Add canonical request fixtures**
 
 The three fixtures must use protocol version `1`, UUID job IDs, absolute example vault paths, and these request types:
 
@@ -106,7 +106,7 @@ The three fixtures must use protocol version `1`, UUID job IDs, absolute example
 {"version":1,"type":"confirm","job_id":"33333333-3333-4333-8333-333333333333","vault_path":"C:\\Vault","branch":"knowledge/20260803-confirm","expected_head":"0123456789012345678901234567890123456789"}
 ```
 
-- [ ] **Step 6: Extend ignore rules and verify both toolchains**
+- [x] **Step 6: Extend ignore rules and verify both toolchains**
 
 Ignore `.venv/`, `__pycache__/`, `.pytest_cache/`, `.coverage`, `.knowledge-runtime/`, plugin `node_modules/`, plugin `main.js`, plugin `data.json`, and Obsidian workspace state. Do not ignore protocol fixtures or Vault template files.
 
@@ -114,13 +114,13 @@ Run:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_package.py -q
-npm --prefix apps/obsidian-plugin run typecheck
-npm --prefix apps/obsidian-plugin run build
+pnpm --dir apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin run build
 ```
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit the scaffold**
+- [x] **Step 7: Commit the scaffold**
 
 ```powershell
 git add .gitignore pyproject.toml src tests apps protocol
@@ -142,11 +142,11 @@ git commit -m "build: scaffold knowledge worker and Obsidian plugin"
 - Create: `protocol/fixtures/error-event.json`
 - Create: `protocol/README.md`
 
-- [ ] **Step 1: Write Python fixture contract tests**
+- [x] **Step 1: Write Python fixture contract tests**
 
 Test that each request fixture parses into a discriminated Pydantic model and serializes without semantic change. Test rejection of protocol version `2`, relative Vault paths, non-HTTP URL input, invalid branch names, and invalid 40-character commit hashes.
 
-- [ ] **Step 2: Run the Python protocol tests and verify failure**
+- [x] **Step 2: Run the Python protocol tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_protocol.py -q
@@ -154,7 +154,7 @@ Test that each request fixture parses into a discriminated Pydantic model and se
 
 Expected: FAIL because protocol models are missing.
 
-- [ ] **Step 3: Implement Python request/event models**
+- [x] **Step 3: Implement Python request/event models**
 
 Define these public types:
 
@@ -167,27 +167,27 @@ Event = Annotated[StateEvent | CompletedEvent | ErrorEvent, Field(discriminator=
 
 `CompletedEvent.result` must contain `outcome`, `risk`, `branch`, `head`, `changed_files`, `ingest_manifest`, and `risk_reasons`. `outcome` is `merged`, `ready`, or `no_change`.
 
-- [ ] **Step 4: Add TypeScript schema tests against the same fixtures**
+- [x] **Step 4: Add TypeScript schema tests against the same fixtures**
 
 Use Zod schemas and `safeParse`. Verify all six canonical fixtures, plus the same invalid cases used by Python.
 
-- [ ] **Step 5: Run the TypeScript tests and verify failure**
+- [x] **Step 5: Run the TypeScript tests and verify failure**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- protocol.test.ts
+pnpm --dir apps/obsidian-plugin test -- protocol.test.ts
 ```
 
 Expected: FAIL because TypeScript protocol schemas are missing.
 
-- [ ] **Step 6: Implement TypeScript schemas and document framing**
+- [x] **Step 6: Implement TypeScript schemas and document framing**
 
 Each process accepts exactly one request JSON object followed by newline on stdin. Stdout contains only newline-delimited protocol events. Diagnostics go to stderr. A terminal `completed` or `error` event is mandatory, and output after a terminal event is invalid.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_protocol.py -q
-npm --prefix apps/obsidian-plugin test -- protocol.test.ts
+pnpm --dir apps/obsidian-plugin test -- protocol.test.ts
 git add src tests apps/obsidian-plugin protocol
 git commit -m "feat: define worker JSONL protocol"
 ```
@@ -204,7 +204,7 @@ git commit -m "feat: define worker JSONL protocol"
 - Create: `tests/fixtures/sources/note.txt`
 - Create: `tests/fixtures/sources/article.html`
 
-- [ ] **Step 1: Write source adapter tests**
+- [x] **Step 1: Write source adapter tests**
 
 Cover:
 
@@ -218,7 +218,7 @@ Cover:
 - SHA-256 computed over normalized UTF-8 content.
 - Identical normalized content yielding the same `source:sha256:<digest>` regardless of file name.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_sources.py -q
@@ -226,7 +226,7 @@ Cover:
 
 Expected: FAIL because source acquisition is missing.
 
-- [ ] **Step 3: Implement normalized source models and adapters**
+- [x] **Step 3: Implement normalized source models and adapters**
 
 Define:
 
@@ -247,11 +247,11 @@ class NormalizedSource(BaseModel):
 
 Use `Path.resolve(strict=True)` for files, reject directories and symlinks in Phase 1, stream URL responses, and never execute or resolve commands found in source text.
 
-- [ ] **Step 4: Persist only inside the job staging directory**
+- [x] **Step 4: Persist only inside the job staging directory**
 
 Implement `write_staged_source(job_dir, source)` to create `input/normalized.md`, `input/metadata.json`, and for file inputs `input/original.<ext>`. Use exclusive directory creation and reject a job ID whose directory already exists.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_sources.py -q
@@ -280,7 +280,7 @@ git commit -m "feat: normalize text files and web sources"
 - Create: `vault-template/sources/web/.gitkeep`
 - Create: `vault-template/.gitignore`
 
-- [ ] **Step 1: Write parsing and validation tests**
+- [x] **Step 1: Write parsing and validation tests**
 
 Create fixtures in temporary Vaults and test:
 
@@ -294,7 +294,7 @@ Create fixtures in temporary Vaults and test:
 - duplicate IDs, malformed YAML, broken targets, and path traversal fail with machine-readable codes;
 - relation display blocks are derived and exactly match Frontmatter relations.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_vault.py tests/test_validation.py -q
@@ -302,11 +302,11 @@ Create fixtures in temporary Vaults and test:
 
 Expected: FAIL because Vault parsing and validation are missing.
 
-- [ ] **Step 3: Implement Vault records and repository scan**
+- [x] **Step 3: Implement Vault records and repository scan**
 
 Define `SourceRecord`, `KnowledgeRecord`, `Relation`, `VaultIndex`, `ValidationIssue`, and `ValidationReport`. Use `yaml.safe_load`; require a single YAML mapping between opening and closing `---`; reject YAML object tags and aliases exceeding the configured safe limits.
 
-- [ ] **Step 4: Implement relation display generation**
+- [x] **Step 4: Implement relation display generation**
 
 Only replace content between:
 
@@ -317,11 +317,11 @@ Only replace content between:
 
 Resolve target display names by stable ID through `VaultIndex`. Preserve all text outside the two markers byte-for-byte. Sort relations by relation type then target ID to make output deterministic.
 
-- [ ] **Step 5: Add the Vault template**
+- [x] **Step 5: Add the Vault template**
 
 The template documents stable IDs, source citations, formal relation semantics, mutable directory taxonomy, and the generated-block rule. Its `.gitignore` excludes `.knowledge-runtime/`, `.obsidian/workspace*.json`, `.obsidian/cache/`, and plugin `data.json` while allowing required shared Obsidian configuration later.
 
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_vault.py tests/test_validation.py -q
@@ -347,11 +347,11 @@ git commit -m "feat: validate portable knowledge vaults"
 - Create: `tests/fixtures/bin/fake-hermes.py`
 - Create: `docs/development.md`
 
-- [ ] **Step 1: Write proposal schema tests**
+- [x] **Step 1: Write proposal schema tests**
 
 The proposal schema must support actions `create`, `supplement`, `support`, `contradict`, `supersede`, `cite-only`, and `no-change`. Reject unknown actions, unknown relation types, duplicate target IDs, paths supplied by the model, knowledge IDs outside `[a-z][a-z0-9-]{2,79}:[a-z0-9][a-z0-9-]{1,119}`, confidence outside `[0,1]`, and citations not equal to the current source ID.
 
-- [ ] **Step 2: Write Hermes process tests using the fake executable**
+- [x] **Step 2: Write Hermes process tests using the fake executable**
 
 Test:
 
@@ -364,7 +364,7 @@ Test:
 - timeout kills the process tree and returns retryable error `HERMES_TIMEOUT`;
 - non-zero exit, empty response, malformed JSON, and schema-invalid proposal never reach Vault rendering.
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_proposals.py tests/test_hermes.py -q
@@ -372,25 +372,25 @@ Test:
 
 Expected: FAIL because proposal and Hermes adapter code are missing.
 
-- [ ] **Step 4: Implement the strict proposal schema**
+- [x] **Step 4: Implement the strict proposal schema**
 
 Hermes may propose semantic content, stable IDs, titles, document types, statuses, confidence, citations, and formal relations. It may not propose filesystem paths, Git commands, frontmatter text, HTML comments, or arbitrary YAML.
 
-- [ ] **Step 5: Implement one-shot Hermes invocation**
+- [x] **Step 5: Implement one-shot Hermes invocation**
 
-Use the official CLI in one-shot mode with a configurable executable and profile. The initial command contract is:
+Use the official CLI's pure one-shot mode with a configurable executable and profile. The command contract is:
 
 ```text
-hermes --ignore-rules --pass-session-id chat --quiet --json --max-turns 1 --source tool -q <prompt>
+hermes --ignore-rules -z <prompt>
 ```
 
-When a profile is configured, insert `--profile <name>` before `chat`. Set a 120-second default timeout. Parse the documented JSON response envelope, then locate exactly one JSON object in the final assistant content. Do not pass `--yolo`; do not expose Git or Vault paths in the prompt.
+When a profile is configured, insert `--profile <name>` before `--ignore-rules`. Set a 120-second default timeout. The documented `-z` mode writes only final response text; accept exactly one JSON object, optionally enclosed by one JSON code fence. Do not pass `--yolo`; do not expose Git or Vault paths in the prompt.
 
-- [ ] **Step 6: Implement lexical context selection**
+- [x] **Step 6: Implement lexical context selection**
 
 Tokenize normalized text and knowledge titles/body into lowercase alphanumeric/CJK terms. Select at most 20 existing documents by deterministic overlap score, then stable ID. Cap context at 60,000 UTF-8 bytes and include each selected stable ID, title, status, source IDs, relations, and bounded body excerpt. Vector retrieval is explicitly deferred.
 
-- [ ] **Step 7: Verify against an installed Hermes CLI when available**
+- [x] **Step 7: Verify against an installed Hermes CLI when available**
 
 Run:
 
@@ -401,7 +401,7 @@ hermes doctor
 
 If Hermes is not installed, install from the official NousResearch distribution, rerun both commands, and record the CLI version in `docs/development.md`. Use a harmless one-shot probe containing no private data to freeze the actual JSON envelope in an integration fixture.
 
-- [ ] **Step 8: Verify and commit**
+- [x] **Step 8: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_proposals.py tests/test_hermes.py -q
@@ -421,7 +421,7 @@ git commit -m "feat: compile structured proposals with Hermes"
 - Create: `tests/test_risk.py`
 - Create: `tests/fixtures/vault/basic/`
 
-- [ ] **Step 1: Write change compiler tests**
+- [x] **Step 1: Write change compiler tests**
 
 Cover:
 
@@ -438,11 +438,11 @@ Cover:
 - `_meta/index.md` and ingest manifest ordering are deterministic;
 - applying the same change set twice is idempotent.
 
-- [ ] **Step 2: Write risk classifier tests**
+- [x] **Step 2: Write risk classifier tests**
 
 Low risk requires all of: no deletion/move, no governance path, no contradiction/supersede, no confirmed knowledge replacement, extraction quality high/medium, at most 10 modified existing knowledge documents, and a clean validation report. Every violated condition yields a stable risk reason code.
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_compiler.py tests/test_risk.py -q
@@ -450,19 +450,19 @@ Low risk requires all of: no deletion/move, no governance path, no contradiction
 
 Expected: FAIL because compiler and risk classifier are missing.
 
-- [ ] **Step 4: Implement immutable `ChangeSet` generation**
+- [x] **Step 4: Implement immutable `ChangeSet` generation**
 
 Define `FileChange` with operations `create`, `update`, `delete`, `move`; Phase 1 compiler may emit only `create` and `update`. Every path is a normalized POSIX path validated to stay within allowed roots. Every update contains `before_sha256` and `after_sha256` for optimistic concurrency.
 
-- [ ] **Step 5: Implement deterministic source and knowledge Markdown rendering**
+- [x] **Step 5: Implement deterministic source and knowledge Markdown rendering**
 
 Use YAML safe dump with explicit field order, UTF-8, LF, no aliases, and `allow_unicode=True`. Do not serialize model-provided YAML. Source records include normalized text and metadata; original file bytes are copied to the source directory for file input.
 
-- [ ] **Step 6: Implement ingest manifests and indexes**
+- [x] **Step 6: Implement ingest manifests and indexes**
 
 Manifest records source ID, input alias, changed paths, relation changes, warnings, risk reasons, Hermes version/profile, compiler version, schema version, and timestamp. `index.md` groups knowledge by type and sorts by title then ID.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_compiler.py tests/test_risk.py -q
@@ -479,7 +479,7 @@ git commit -m "feat: compile deterministic knowledge change sets"
 - Create: `src/zhanlu_worker/git.py`
 - Create: `tests/test_git.py`
 
-- [ ] **Step 1: Write Git integration tests in temporary repositories**
+- [x] **Step 1: Write Git integration tests in temporary repositories**
 
 Cover:
 
@@ -496,7 +496,7 @@ Cover:
 - stale head, divergent main, merge conflict, failed commit, and interrupted apply never leave a partially staged Vault;
 - commit message contains ingest ID and source ID but no source body.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_git.py -q
@@ -504,15 +504,15 @@ Cover:
 
 Expected: FAIL because Git controller is missing.
 
-- [ ] **Step 3: Implement a subprocess-only Git client**
+- [x] **Step 3: Implement a subprocess-only Git client**
 
 All Git calls use `subprocess.run(args, cwd=vault, check=False, shell=False)` where `args` is a validated list of strings. Set `GIT_TERMINAL_PROMPT=0`. Enforce explicit timeouts and return typed errors with redacted output. Never call reset-hard, clean, checkout-discard, force-push, or branch deletion containing unmerged work.
 
-- [ ] **Step 4: Implement transactional apply**
+- [x] **Step 4: Implement transactional apply**
 
 Before changing the worktree, verify all `before_sha256` values. Copy changed files to a transaction backup under the job directory. On any pre-commit failure, restore only files owned by that transaction and verify hashes. After a successful proposal commit, switch back to `main`; low-risk changes merge with `--ff-only`, while high-risk changes return branch/head for later confirmation.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_git.py -q
@@ -531,7 +531,7 @@ git commit -m "feat: apply knowledge changes as safe Git transactions"
 - Create: `tests/test_jobs.py`
 - Create: `tests/test_cli.py`
 
-- [ ] **Step 1: Write state-machine and orchestration tests**
+- [x] **Step 1: Write state-machine and orchestration tests**
 
 Test valid transition sequences:
 
@@ -543,11 +543,11 @@ queued -> acquiring -> paused
 
 Reject skipped, repeated, or post-terminal transitions. Test duplicate source, Hermes timeout, invalid proposal, validation failure, dirty repo, low-risk merge, high-risk ready, and confirm flows using fake source/Hermes adapters and temporary Git repositories.
 
-- [ ] **Step 2: Write CLI framing tests**
+- [x] **Step 2: Write CLI framing tests**
 
 Test exactly one stdin request, ordered stdout JSONL events, stderr-only logs, exit code `0` for terminal `completed`, exit code `1` for terminal `error`, malformed input error, EOF handling, and no output after terminal event.
 
-- [ ] **Step 3: Run tests and verify failure**
+- [x] **Step 3: Run tests and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/test_jobs.py tests/test_cli.py -q
@@ -555,15 +555,15 @@ Test exactly one stdin request, ordered stdout JSONL events, stderr-only logs, e
 
 Expected: FAIL because orchestration is missing.
 
-- [ ] **Step 4: Implement `JobRunner` and dependency injection**
+- [x] **Step 4: Implement `JobRunner` and dependency injection**
 
 `JobRunner` owns acquisition, context selection, Hermes invocation, compilation, validation, risk classification, and Git application. Adapters are constructor dependencies so unit tests never call the network, real Hermes, or the user's repository.
 
-- [ ] **Step 5: Implement CLI logging and cancellation behavior**
+- [x] **Step 5: Implement CLI logging and cancellation behavior**
 
 Use structured event serialization on stdout and concise diagnostic logs on stderr. Handle Ctrl+C and parent-process termination by stopping child processes, marking the job paused, and leaving validated staging files for diagnosis without applying them to the Vault.
 
-- [ ] **Step 6: Run the full Python suite and commit**
+- [x] **Step 6: Run the full Python suite and commit**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
@@ -581,7 +581,7 @@ git commit -m "feat: orchestrate personal knowledge import jobs"
 - Create: `apps/obsidian-plugin/tests/worker-client.test.ts`
 - Create: `apps/obsidian-plugin/tests/fixtures/fake-worker.mjs`
 
-- [ ] **Step 1: Write worker process client tests**
+- [x] **Step 1: Write worker process client tests**
 
 Cover:
 
@@ -594,15 +594,15 @@ Cover:
 - process tree terminated on plugin unload;
 - no use of a shell and no network port.
 
-- [ ] **Step 2: Run the test and verify failure**
+- [x] **Step 2: Run the test and verify failure**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- worker-client.test.ts
+pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
 ```
 
 Expected: FAIL because the worker client is missing.
 
-- [ ] **Step 3: Implement `WorkerClient`**
+- [x] **Step 3: Implement `WorkerClient`**
 
 Expose:
 
@@ -621,11 +621,11 @@ export interface RunningJob {
 
 Use Electron/Node `child_process.spawn` with `shell: false`, hidden window on Windows, UTF-8 streaming decoder, and an `AbortSignal`-aware lifecycle.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- worker-client.test.ts
-npm --prefix apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin test -- worker-client.test.ts
+pnpm --dir apps/obsidian-plugin run typecheck
 git add apps/obsidian-plugin
 git commit -m "feat: connect Obsidian to the local worker"
 ```
@@ -643,23 +643,23 @@ git commit -m "feat: connect Obsidian to the local worker"
 - Create: `apps/obsidian-plugin/tests/presenter.test.ts`
 - Modify: `apps/obsidian-plugin/styles.css`
 
-- [ ] **Step 1: Write pure presenter tests**
+- [x] **Step 1: Write pure presenter tests**
 
 Test Chinese labels and actions for idle, running states, paused/error, low-risk merged, high-risk ready, and no-change. A high-risk result must show branch, changed files, risk reasons, `打开 Git Diff` and `确认合入` actions. Model/profile/data destination text must appear before start.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test -- presenter.test.ts
+pnpm --dir apps/obsidian-plugin test -- presenter.test.ts
 ```
 
 Expected: FAIL because presentation logic is missing.
 
-- [ ] **Step 3: Implement plugin settings**
+- [x] **Step 3: Implement plugin settings**
 
 Settings are local Obsidian plugin data only and include Python executable, Worker module, Hermes executable, optional Hermes profile, job timeout, and the explicit personal-data policy label. Never store API keys or GitHub tokens. Add a `检测环境` action that runs version/preflight checks without importing content.
 
-- [ ] **Step 4: Implement the import side view**
+- [x] **Step 4: Implement the import side view**
 
 Register a ribbon icon and command `打开斩律知识导入`. The view provides:
 
@@ -672,16 +672,16 @@ Register a ribbon icon and command `打开斩律知识导入`. The view provides
 - high-risk confirmation button issuing a `confirm` request with exact branch/head;
 - a Git Diff button invoking the configured system Git GUI or copying the safe `git diff main...<branch>` command, without running an arbitrary configured shell string.
 
-- [ ] **Step 5: Wire drag-and-drop safely**
+- [x] **Step 5: Wire drag-and-drop safely**
 
 Use desktop `File.path`; reject directories, multiple files, unsupported extensions, and missing paths in the UI before spawning Worker. The Worker remains the security authority and repeats validation.
 
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 ```powershell
-npm --prefix apps/obsidian-plugin test
-npm --prefix apps/obsidian-plugin run typecheck
-npm --prefix apps/obsidian-plugin run build
+pnpm --dir apps/obsidian-plugin test
+pnpm --dir apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin run build
 git add apps/obsidian-plugin
 git commit -m "feat: add Obsidian knowledge import experience"
 ```
@@ -699,11 +699,11 @@ git commit -m "feat: add Obsidian knowledge import experience"
 - Modify: `docs/development.md`
 - Create: `docs/manual-test.md`
 
-- [ ] **Step 1: Write the end-to-end test first**
+- [x] **Step 1: Write the end-to-end test first**
 
 The test creates a temporary Vault from `vault-template`, initializes `main`, configures a deterministic fake Hermes executable, runs a file import through the real CLI, asserts the exact event sequence, verifies the low-risk commit is merged into `main`, validates the entire Vault, reruns the same source, and verifies no duplicate knowledge or source record is created.
 
-- [ ] **Step 2: Run the E2E test and verify failure**
+- [x] **Step 2: Run the E2E test and verify failure**
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest tests/e2e/test_personal_loop.py -q
@@ -711,35 +711,37 @@ The test creates a temporary Vault from `vault-template`, initializes `main`, co
 
 Expected: FAIL until all real components are correctly connected.
 
-- [ ] **Step 3: Make the E2E test pass without test-only production branches**
+- [x] **Step 3: Make the E2E test pass without test-only production branches**
 
 Use dependency configuration only: the same CLI, schemas, compiler, validator, and Git controller run in both tests and production. The fake Hermes executable only replaces the external model process.
 
-- [ ] **Step 4: Add a single verification entry point**
+- [x] **Step 4: Add a single verification entry point**
 
 `scripts/verify.ps1` must stop on error and run:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest --cov=zhanlu_worker --cov-report=term-missing
-npm --prefix apps/obsidian-plugin test
-npm --prefix apps/obsidian-plugin run typecheck
-npm --prefix apps/obsidian-plugin run build
+pnpm --dir apps/obsidian-plugin test
+pnpm --dir apps/obsidian-plugin run typecheck
+pnpm --dir apps/obsidian-plugin run build
 git diff --check
 ```
 
-- [ ] **Step 5: Add a safe plugin installer**
+- [x] **Step 5: Add a safe plugin installer**
 
 `scripts/install-plugin.ps1` accepts a mandatory explicit Vault path, resolves it, requires `.obsidian/`, creates only `.obsidian/plugins/zhanlu-knowledge/`, and copies `main.js`, `manifest.json`, and `styles.css`. It must reject the repository root, home directory, drive root, missing build outputs, and unresolved paths. It must not launch Obsidian automatically.
 
-- [ ] **Step 6: Install or update Obsidian for manual testing**
+- [x] **Step 6: Install or update Obsidian for manual testing**
 
 If Obsidian is absent, download it from the official Obsidian distribution, verify the downloaded installer is signed by Dynalist Inc. or the current official publisher, install it, and record the tested Obsidian version. Do not install community plugins unrelated to this project.
 
 - [ ] **Step 7: Run a real Hermes manual smoke test**
 
+Blocked on this machine: Hermes 0.19.1 is installed and reaches the one-shot inference boundary, but no local/BYOK inference provider is configured. The deterministic end-to-end substitute passes; `docs/development.md` records the honest real-provider prerequisite.
+
 Create a disposable test Vault containing no private data. Import `tests/fixtures/e2e/source.md` with the configured real Hermes profile. Verify the proposal is schema-valid, the source is traceable, the relation display matches Frontmatter, and the Git commit/merge behavior matches risk. Delete only the disposable Vault after resolving and verifying its absolute test path.
 
-- [ ] **Step 8: Run the full verification suite**
+- [x] **Step 8: Run the full verification suite**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
@@ -748,7 +750,7 @@ git status --short
 
 Expected: all tests/builds pass and only intended files are changed.
 
-- [ ] **Step 9: Commit verification assets**
+- [x] **Step 9: Commit verification assets**
 
 ```powershell
 git add scripts tests/e2e tests/fixtures/e2e docs/development.md docs/manual-test.md
@@ -765,15 +767,15 @@ git commit -m "test: verify the local personal knowledge loop"
 - Modify: `docs/development.md`
 - Modify: `docs/manual-test.md`
 
-- [ ] **Step 1: Document the supported workflow and explicit limits**
+- [x] **Step 1: Document the supported workflow and explicit limits**
 
 Document installation, Vault initialization, Hermes configuration, Markdown/TXT drag import, URL import, progress states, low-risk auto-merge, high-risk confirmation, recovery, logs, and uninstall. State plainly that PDF/DOCX/OCR and GitHub team PR are not in this phase.
 
-- [ ] **Step 2: Audit licenses and packaged dependencies**
+- [x] **Step 2: Audit licenses and packaged dependencies**
 
 Record direct dependency licenses. Confirm no AGPL/GPL runtime is bundled in Phase 1 and no source content, model cache, credential, `.venv`, `node_modules`, or Obsidian installer is tracked by Git.
 
-- [ ] **Step 3: Run completion verification from a clean checkout state**
+- [x] **Step 3: Run completion verification from a clean checkout state**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
@@ -784,14 +786,14 @@ git log --oneline --decorate -12
 
 Expected: verification passes; the worktree is clean after the documentation commit.
 
-- [ ] **Step 4: Commit documentation**
+- [x] **Step 4: Commit documentation**
 
 ```powershell
 git add README.md docs
 git commit -m "docs: explain the personal knowledge workflow"
 ```
 
-- [ ] **Step 5: Produce the next implementation plans**
+- [x] **Step 5: Produce the next implementation plans**
 
 Create separate reviewed plans for:
 

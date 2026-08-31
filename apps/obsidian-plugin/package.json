@@ -1,0 +1,26 @@
+{
+  "name": "zhanlu-knowledge",
+  "version": "0.1.0",
+  "description": "Compile files and web pages into a Git-backed knowledge vault.",
+  "main": "main.js",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "test": "vitest run",
+    "lint": "tsc --noEmit --skipLibCheck",
+    "typecheck": "tsc --noEmit --skipLibCheck"
+  },
+  "dependencies": {
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "esbuild": "0.25.5",
+    "obsidian": "latest",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
