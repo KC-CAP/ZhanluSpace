@@ -87,6 +87,70 @@ def test_invokes_one_shot_hermes_in_job_directory_with_bounded_prompt(
     assert str(tmp_path) not in invocation["prompt"]
 
 
+def test_prompt_embeds_machine_readable_schema_for_every_action(tmp_path: Path) -> None:
+    _adapter(tmp_path).compile(_source(), [], tmp_path)
+
+    prompt = json.loads((tmp_path / "invocation.json").read_text(encoding="utf-8"))[
+        "prompt"
+    ]
+    schema_text = prompt.split("BEGIN TRUSTED OUTPUT JSON SCHEMA\n", 1)[1].split(
+        "\nEND TRUSTED OUTPUT JSON SCHEMA", 1
+    )[0]
+    schema = json.loads(schema_text)
+
+    assert set(schema["$defs"]["CreateAction"]["required"]) == {
+        "action",
+        "knowledge_id",
+        "title",
+        "knowledge_type",
+        "status",
+        "confidence",
+        "content",
+        "citations",
+    }
+    assert set(schema["$defs"]["ExistingAction"]["required"]) == {
+        "action",
+        "target_id",
+        "confidence",
+        "content",
+        "citations",
+    }
+    assert set(schema["$defs"]["SupersedeAction"]["required"]) == {
+        "action",
+        "target_id",
+        "replacement_id",
+        "title",
+        "knowledge_type",
+        "status",
+        "confidence",
+        "content",
+        "citations",
+    }
+    assert set(schema["$defs"]["NoChangeAction"]["required"]) == {
+        "action",
+        "reason",
+    }
+    action_items = schema["properties"]["actions"]["items"]
+    assert {item["$ref"] for item in action_items["oneOf"]} == {
+        "#/$defs/CreateAction",
+        "#/$defs/ExistingAction",
+        "#/$defs/SupersedeAction",
+        "#/$defs/NoChangeAction",
+    }
+    assert action_items["discriminator"] == {
+        "propertyName": "action",
+        "mapping": {
+            "create": "#/$defs/CreateAction",
+            "supplement": "#/$defs/ExistingAction",
+            "support": "#/$defs/ExistingAction",
+            "contradict": "#/$defs/ExistingAction",
+            "cite-only": "#/$defs/ExistingAction",
+            "supersede": "#/$defs/SupersedeAction",
+            "no-change": "#/$defs/NoChangeAction",
+        },
+    }
+
+
 @pytest.mark.parametrize(
     ("mode", "code", "retryable", "timeout"),
     (

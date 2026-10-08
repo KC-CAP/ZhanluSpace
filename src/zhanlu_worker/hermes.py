@@ -207,6 +207,11 @@ def _build_prompt(
 ) -> str:
     rules_path = Path(__file__).with_name("prompts") / "knowledge_compiler.md"
     rules = rules_path.read_text(encoding="utf-8")
+    output_schema_json = json.dumps(
+        CompilationProposal.model_json_schema(),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
     context_json = json.dumps(
         [item.to_prompt_dict() for item in context],
         ensure_ascii=False,
@@ -214,6 +219,9 @@ def _build_prompt(
     )
     return (
         f"{rules}\n\n"
+        "BEGIN TRUSTED OUTPUT JSON SCHEMA\n"
+        f"{output_schema_json}\n"
+        "END TRUSTED OUTPUT JSON SCHEMA\n\n"
         f"CURRENT SOURCE ID: {source.source_id}\n\n"
         "BEGIN UNTRUSTED SOURCE\n"
         f"{source.normalized_text}"
