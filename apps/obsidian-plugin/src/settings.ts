@@ -38,7 +38,7 @@ export class ZhanluSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "斩律知识库设置" });
+    containerEl.createEl("h2", { text: "Zhanlu 知识库设置" });
     containerEl.createEl("p", {
       text: "这里只保存本机工具路径和模型配置名称，不保存 API Key 或 GitHub Token。",
       cls: "setting-item-description",

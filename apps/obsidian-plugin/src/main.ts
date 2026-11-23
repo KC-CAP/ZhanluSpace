@@ -12,10 +12,10 @@ export default class ZhanluKnowledgePlugin extends Plugin {
     await this.loadSettings();
     this.workerClient = this.createWorkerClient();
     this.registerView(IMPORT_VIEW_TYPE, (leaf) => new ImportView(leaf, this));
-    this.addRibbonIcon("book-plus", "打开斩律知识导入", () => void this.activateImportView());
+    this.addRibbonIcon("book-plus", "打开 Zhanlu 知识导入", () => void this.activateImportView());
     this.addCommand({
       id: "open-knowledge-import",
-      name: "打开斩律知识导入",
+      name: "打开 Zhanlu 知识导入",
       callback: () => void this.activateImportView(),
     });
     this.addSettingTab(new ZhanluSettingTab(this.app, this));
@@ -34,7 +34,7 @@ export default class ZhanluKnowledgePlugin extends Plugin {
   getVaultPath(): string {
     const adapter = this.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) {
-      throw new Error("斩律知识库仅支持本地文件系统 Vault");
+      throw new Error("Zhanlu 知识库仅支持本地文件系统 Vault");
     }
     return adapter.getBasePath();
   }
