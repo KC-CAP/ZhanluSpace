@@ -1,7 +1,7 @@
 import type { CompletedEvent } from "./protocol";
 
 
-export type ImportActionId = "start" | "cancel" | "retry" | "open-changes" | "confirm";
+export type ImportActionId = "start" | "cancel" | "retry" | "open-changes" | "open-pr" | "confirm";
 
 export interface ImportAction {
   id: ImportActionId;
@@ -112,6 +112,16 @@ export function presentImport(state: ImportScreenState): ImportPresentation {
     };
   }
   if (result.outcome === "ready") {
+    if (result.pr_url) {
+      return {
+        title: "导入知识",
+        status: "团队 PR 已创建，等待审核",
+        detail: result.pr_url,
+        tone: "warning",
+        facts,
+        actions: [{ id: "open-pr", label: "打开 GitHub PR", primary: true }],
+      };
+    }
     return {
       title: "导入知识",
       status: "需要你确认后合入",

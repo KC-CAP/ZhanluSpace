@@ -9,6 +9,7 @@ import pytest
 
 from zhanlu_worker.compiler import ChangeCompiler, ChangeSet, CompileMetadata, FileChange
 from zhanlu_worker.git import GitController, GitError
+from zhanlu_worker.github import GitHubPullRequests, render_pr_body
 from zhanlu_worker.proposals import CompilationProposal
 from zhanlu_worker.risk import RiskAssessment
 from zhanlu_worker.sources import acquire_file
@@ -134,6 +135,91 @@ def test_low_risk_change_commits_and_fast_forwards_main(tmp_path: Path) -> None:
     assert INGEST_ID in commit
     assert change_set.source_id in commit
     assert "关键词与语义召回互补" not in commit
+
+
+def test_team_change_stays_on_contribution_branch_even_when_low_risk(
+    tmp_path: Path,
+) -> None:
+    root = _repository(tmp_path)
+    change_set = _change_set(tmp_path, root)
+    baseline = _git(root, "rev-parse", "main").stdout.strip()
+
+    result = _controller(root).apply(
+        change_set, RiskAssessment("low", ()), auto_merge=False
+    )
+
+    assert result.outcome == "ready"
+    assert _git(root, "branch", "--show-current").stdout.strip() == "main"
+    assert _git(root, "rev-parse", "main").stdout.strip() == baseline
+    assert _git(root, "rev-parse", result.branch).stdout.strip() == result.head
+    assert not (root / "knowledge" / "methods" / "hybrid-retrieval.md").exists()
+    assert _git(root, "status", "--porcelain").stdout == ""
+
+
+def test_team_preflight_fast_forwards_clean_main_to_origin(tmp_path: Path) -> None:
+    root = _repository(tmp_path)
+    remote = tmp_path / "team.git"
+    _git(tmp_path, "init", "--bare", str(remote))
+    _git(root, "remote", "add", "origin", str(remote))
+    _git(root, "push", "--set-upstream", "origin", "main")
+    peer = tmp_path / "peer"
+    _git(tmp_path, "clone", str(remote), str(peer))
+    _git(peer, "fetch", "origin", "main")
+    _git(peer, "switch", "-C", "main", "origin/main")
+    _git(peer, "config", "user.name", "Team Peer")
+    _git(peer, "config", "user.email", "peer@example.invalid")
+    (peer / "team.md").write_text("approved team change\n", encoding="utf-8")
+    _git(peer, "add", "team.md")
+    _git(peer, "commit", "-m", "team change")
+    _git(peer, "push", "origin", "main")
+
+    _controller(root).team_preflight()
+
+    assert _git(root, "rev-parse", "main").stdout == _git(root, "rev-parse", "origin/main").stdout
+    assert (root / "team.md").read_text(encoding="utf-8") == "approved team change\n"
+    assert _git(root, "status", "--porcelain").stdout == ""
+
+
+def test_github_pr_body_is_derived_from_changes_without_source_text(tmp_path: Path) -> None:
+    root = _repository(tmp_path)
+    change_set = _change_set(tmp_path, root)
+
+    body = render_pr_body(change_set)
+
+    assert change_set.ingest_id in body
+    assert change_set.source_id in body
+    assert "knowledge/methods/hybrid-retrieval.md" in body
+    assert "关键词与语义召回互补" not in body
+
+
+def test_github_client_creates_reviewable_pr_with_argument_list(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _repository(tmp_path)
+    change_set = _change_set(tmp_path, root)
+    calls: list[tuple[list[str], dict[str, object]]] = []
+    responses = [
+        subprocess.CompletedProcess([], 1, "", "no pull request"),
+        subprocess.CompletedProcess([], 0, "https://github.com/team/vault/pull/7\n", ""),
+    ]
+
+    def fake_run(args: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        calls.append((args, kwargs))
+        return responses.pop(0)
+
+    monkeypatch.setattr("zhanlu_worker.github.subprocess.run", fake_run)
+
+    url = GitHubPullRequests(root).create_or_update_pr(
+        "knowledge/20260803-55555555", change_set
+    )
+
+    assert url == "https://github.com/team/vault/pull/7"
+    assert calls[0][0][:4] == ["gh", "pr", "view", "knowledge/20260803-55555555"]
+    create_args = calls[1][0]
+    assert create_args[:3] == ["gh", "pr", "create"]
+    assert "--draft" not in create_args
+    assert "--title" in create_args and "--body" in create_args
+    assert calls[1][1]["shell"] is False
 
 
 def test_high_risk_change_stays_on_proposal_branch_until_confirmed(tmp_path: Path) -> None:

@@ -10,6 +10,7 @@ from typing import Protocol
 from . import __version__
 from .compiler import ChangeCompiler, CompileError, CompileMetadata
 from .git import GitController, GitError
+from .github import GitHubError, GitHubPullRequests
 from .hermes import HermesError, select_context
 from .protocol import (
     CompletedEvent,
@@ -76,12 +77,16 @@ class JobRunner:
         git_factory: Callable[[Path], GitController] = GitController,
         hermes_version: str = "unknown",
         hermes_profile: str | None = None,
+        team_mode: bool = False,
+        github_factory: Callable[[Path], GitHubPullRequests] = GitHubPullRequests,
     ) -> None:
         self.hermes = hermes
         self.clock = clock
         self.git_factory = git_factory
         self.hermes_version = hermes_version
         self.hermes_profile = hermes_profile
+        self.team_mode = team_mode
+        self.github_factory = github_factory
 
     def handle(
         self,
@@ -127,7 +132,10 @@ class JobRunner:
     ) -> CompletedEvent:
         vault = Path(request.vault_path)
         git = self.git_factory(vault)
-        git.preflight()
+        if self.team_mode:
+            git.team_preflight()
+        else:
+            git.preflight()
         state("acquiring", "正在获取素材")
         if request.input.kind == "file":
             source = acquire_file(request.input.value, now=self.clock)
@@ -164,9 +172,20 @@ class JobRunner:
             extraction_quality=source.extraction_quality,
             validation_ok=True,
         )
-        result = git.apply(change_set, risk)
+        result = (
+            git.apply(change_set, risk, auto_merge=False)
+            if self.team_mode
+            else git.apply(change_set, risk)
+        )
+        pr_url: str | None = None
+        if self.team_mode and result.outcome != "no_change":
+            git.push_branch(result.branch)
+            pr_url = self.github_factory(vault).create_or_update_pr(result.branch, change_set)
         if result.outcome == "ready":
-            state("ready", "高风险变更等待确认")
+            state(
+                "ready",
+                "团队变更已推送并创建 PR" if self.team_mode else "高风险变更等待确认",
+            )
         elif result.outcome == "merged":
             state("committed", "变更已提交")
             state("merged", "低风险变更已合入 main")
@@ -184,6 +203,7 @@ class JobRunner:
                     "changed_files": changed_files,
                     "ingest_manifest": f"_meta/ingests/{request.job_id}.md",
                     "risk_reasons": list(risk.reasons),
+                    "pr_url": pr_url,
                 },
             }
         )
@@ -194,6 +214,8 @@ class JobRunner:
         state: Callable[[JobState, str], None],
     ) -> CompletedEvent:
         state("validating", "正在重新校验提案分支")
+        if self.team_mode:
+            raise GitError("TEAM_CONFIRM_DISABLED", "team changes must be approved and merged in GitHub")
         result = self.git_factory(Path(request.vault_path)).confirm(
             request.branch, request.expected_head
         )
@@ -223,6 +245,8 @@ def _error_details(error: BaseException) -> tuple[str, str, bool]:
         return error.code, str(error), error.retryable
     if isinstance(error, GitError):
         return error.code, str(error), False
+    if isinstance(error, GitHubError):
+        return error.code, str(error), True
     if isinstance(error, CompileError):
         return "COMPILE_FAILED", str(error), False
     if isinstance(error, FileExistsError):

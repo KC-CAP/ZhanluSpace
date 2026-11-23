@@ -52,6 +52,7 @@ export default class ZhanluKnowledgePlugin extends Plugin {
       environment: {
         ZHANLU_HERMES_EXECUTABLE: this.settings.hermesExecutable,
         ZHANLU_HERMES_PROFILE: this.settings.hermesProfile,
+        ZHANLU_MODE: this.settings.mode,
       },
     });
   }

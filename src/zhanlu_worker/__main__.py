@@ -82,6 +82,7 @@ def build_runner() -> JobRunner:
         adapter,
         hermes_version=os.environ.get("ZHANLU_HERMES_VERSION", "unknown"),
         hermes_profile=profile,
+        team_mode=os.environ.get("ZHANLU_MODE", "personal") == "team",
     )
 
 

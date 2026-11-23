@@ -110,6 +110,7 @@ class JobResult(ProtocolModel):
     changed_files: list[str]
     ingest_manifest: str
     risk_reasons: list[str]
+    pr_url: str | None = None
 
     @field_validator("branch")
     @classmethod

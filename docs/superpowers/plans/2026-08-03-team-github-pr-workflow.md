@@ -19,7 +19,7 @@
 ```text
 Contributor Obsidian Plugin
   -> Local Worker -> Hermes -> DeepSeek API
-  -> local branch + commit -> GitHub Draft PR
+  -> local branch + commit -> GitHub PR
                                -> Knowledge CI + deterministic summary
                                -> one independent approval -> main
   <- another member fetch/pull on a clean main
@@ -33,7 +33,7 @@ Obsidian 插件只负责导入入口、状态和 GitHub PR 操作入口。GitHub
 2. **成员加入**：每位成员用自己的 GitHub 账号获得仓库读写权限；Clone 仓库并用 Obsidian 打开 Vault。插件团队设置记录仓库坐标和 `team` 模式，不记录访问 Token。
 3. **导入前同步**：成员确认工作区干净，Worker `fetch` 远端并快进到最新 `main`。若本地有未提交修改或分支落后不可快进，停止导入并给出可操作说明，不自动 stash、reset 或覆盖。
 4. **本地生成提案**：成员导入单个 Markdown/TXT 或 URL。Worker 保存来源快照，调用本机 Hermes，确定性生成知识文档、关系、索引和 ingest manifest；通过本地校验后提交到唯一命名的贡献分支。
-5. **推送并开 PR**：插件用 GitHub CLI 的现有登录态推送分支并创建 Draft PR。相同 ingest ID 重试时更新已有 PR，不重复生成提交或 PR。
+5. **推送并开 PR**：插件用 GitHub CLI 的现有登录态推送分支并创建可直接审核的 PR。相同 ingest ID 重试时更新已有 PR，不重复生成提交或 PR。
 6. **CI 校验及生成说明**：GitHub Actions 校验提交内容，并以实际 Diff 和 manifest 生成可更新的 Markdown 摘要，列出新增/修改/取代文档、关系变化、来源、风险和检查结果。
 7. **一人审核合入**：审核者在 GitHub Files changed 中阅读差异、评论并批准；所有必需检查通过、评论线程解决、分支基线符合规则后，由有权限的人合并。
 8. **其他成员同步**：成员在 Obsidian 中点“同步团队知识库”；仅在干净工作区和可快进时自动更新。否则保留本地数据，展示冲突路径和恢复指引。
@@ -87,7 +87,7 @@ PR 标题和摘要从 manifest、文件差异和 CI 结果确定性生成，不�
 
 - 增加 `personal | team` 配置、仓库/默认分支/remote 校验和团队数据去向提示。
 - 增加只读 fetch、创建唯一贡献分支、事务性提交和安全重试；团队模式永不本地 merge。
-- 增加使用 GitHub CLI 登录态的 PR 创建/更新命令和 Draft PR；失败时保留本地分支。
+- 增加使用 GitHub CLI 登录态的 PR 创建/更新命令；失败时保留本地分支。
 - 提供管理员初始化指南、成员安装与 Key 配置指南、团队 Vault 模板。
 - 验收：两名成员各自 clone；一人导入后只能形成分支/PR，无法触碰 `main`；另一人能够 clone 阅读。
 

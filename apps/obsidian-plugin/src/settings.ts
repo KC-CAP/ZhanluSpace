@@ -8,6 +8,7 @@ export { isSafePythonModule } from "./settings-validation";
 
 
 export interface ZhanluSettings {
+  mode: "personal" | "team";
   pythonExecutable: string;
   workerModule: string;
   hermesExecutable: string;
@@ -17,6 +18,7 @@ export interface ZhanluSettings {
 }
 
 export const DEFAULT_SETTINGS: ZhanluSettings = {
+  mode: "personal",
   pythonExecutable: "python",
   workerModule: "zhanlu_worker",
   hermesExecutable: "hermes",
@@ -43,6 +45,20 @@ export class ZhanluSettingTab extends PluginSettingTab {
       text: "这里只保存本机工具路径和模型配置名称，不保存 API Key 或 GitHub Token。",
       cls: "setting-item-description",
     });
+
+    new Setting(containerEl)
+      .setName("知识库模式")
+      .setDesc("个人模式按风险在本地合入；团队模式将所有变更推送到 GitHub PR。")
+      .addDropdown((dropdown) => {
+        dropdown.addOption("personal", "个人").addOption("team", "团队");
+        dropdown.setValue(this.host.settings.mode);
+        dropdown.onChange(async (value) => {
+          if (value === "personal" || value === "team") {
+            this.host.settings.mode = value;
+            await this.host.saveSettings();
+          }
+        });
+      });
 
     this.textSetting("Python 可执行文件", "建议使用已安装 zhanlu-worker 的虚拟环境 Python。", "pythonExecutable");
     this.textSetting("Worker 模块", "默认：zhanlu_worker", "workerModule");
@@ -92,7 +108,7 @@ export class ZhanluSettingTab extends PluginSettingTab {
   private textSetting(
     name: string,
     description: string,
-    key: Exclude<keyof ZhanluSettings, "jobTimeoutSeconds">,
+    key: Exclude<keyof ZhanluSettings, "jobTimeoutSeconds" | "mode">,
   ): void {
     new Setting(this.containerEl)
       .setName(name)

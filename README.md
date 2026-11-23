@@ -1,8 +1,8 @@
 # ZhanluSpace
 
-Zhanlu Knowledge 是一个以普通 Markdown、YAML Frontmatter 和 Git 为事实层的个人知识库编译器。Obsidian 提供最终阅读、编辑和关系可视化界面；Hermes 只生成结构化知识提案；确定性 Worker 负责路径、Schema、关系、风险与 Git 事务。
+Zhanlu Knowledge 是一个以普通 Markdown、YAML Frontmatter 和 Git 为事实层的个人与团队知识库工具。Obsidian 提供阅读、编辑和关系可视化界面；Hermes 生成结构化知识提案；确定性 Worker 负责路径、Schema、关系、风险与 Git 事务。
 
-第一阶段已经支持单个 Markdown/TXT 文件和 HTTP/HTTPS 网页。PDF、DOCX、OCR 与团队 GitHub PR 工作流属于后续阶段，当前版本不假装支持。
+个人模式已支持单个 Markdown/TXT 文件和 HTTP/HTTPS 网页。团队模式正在分阶段开放：当前实现可把变更保留在贡献分支、推送到 GitHub 并创建 PR；Knowledge CI、自动摘要和同步诊断仍在开发中。PDF、DOCX、OCR、批量导入、PPTX、XLSX、音频和视频不属于当前支持范围。
 
 ```mermaid
 flowchart LR
@@ -25,6 +25,8 @@ flowchart LR
 - 低风险新增自动创建审计提交并快进本地 `main`。
 - 修改既有知识、反驳或取代等高风险变化停在提案分支，必须查看差异后确认精确 branch/head。
 - 脏工作区、过期提案、无效模型输出、超时、取消或校验失败不会覆盖无关用户修改。
+- 团队模式下所有导入都保留在贡献分支并创建 GitHub PR；不会在本地自动合入 `main`。
+- 团队 PR 通过本机 GitHub CLI（`gh`）认证创建；API Key 和 GitHub 凭据不写入 Vault 或 Git。
 - 不安装 Obsidian 时，Vault 仍然是可读、可迁移、可校验的 Markdown/Git 仓库。
 
 ## 快速开始
@@ -68,7 +70,13 @@ hermes --ignore-rules -z "Return one JSON object with key smoke and value ok."
 
 脚本拒绝仓库源码根目录、用户主目录、盘符根目录、非 Git Vault 和尚未由 Obsidian 打开的目录。它在插件目录内安装独立 Worker 环境，并通过本地 Git exclude 保持 Vault 干净。
 
-在 Obsidian 的“第三方插件”中启用 Zhanlu Knowledge，再点击左侧书本加号或运行命令“打开斩律知识导入”。插件设置里的“检测环境”不会读取素材，可以先验证 Python Worker、Hermes 与 Git。
+在 Obsidian 的“第三方插件”中启用 Zhanlu Knowledge，再点击左侧书本加号或运行命令“打开 Zhanlu 知识导入”。插件设置里的“检测环境”不会读取素材，可以先验证 Python Worker、Hermes 与 Git。
+
+### 4. 团队模式预览
+
+团队 Vault 必须是 GitHub 仓库的本地克隆，默认分支为 `main`，远端名为 `origin`。每位成员使用自己的 GitHub 账号，并在本机安装 GitHub CLI 后执行 `gh auth login`。在插件设置中将“知识库模式”切换为“团队”。开始导入前，Worker 会从 `origin/main` 同步；每次变更会推送到成员分支并创建可直接审核的 PR。
+
+目前团队模式还没有自动 Knowledge CI 和自动变更摘要。启用前，仓库管理员必须在 GitHub 手动保护 `main`：禁止直接 push，要求至少一个由非提交者作出的批准，并要求现有检查通过。未配置这些规则时，GitHub 可能允许绕过审核合并，因此当前团队模式应先在测试仓库试用。只有一位 GitHub 成员时，无法实现独立审批；请继续使用个人模式。
 
 ## 使用与恢复
 
@@ -89,7 +97,7 @@ hermes --ignore-rules -z "Return one JSON object with key smoke and value ok."
 ## 明确限制
 
 - 第一阶段只接受单个 Markdown/TXT 文件或 URL；不支持批量目录、PDF、DOCX、PPTX、XLSX、图片 OCR、音频或视频。
-- 尚未实现 GitHub push/PR、Knowledge CI、CODEOWNERS、团队审批或合入后同步。
+- 团队 PR 创建已进入预览；尚未实现 Knowledge CI、自动 PR 摘要、CODEOWNERS 模板生成、审核状态跟踪或成员一键同步。
 - URL 获取仅处理可直接访问的 HTML，不负责登录态、付费墙、复杂 JavaScript 渲染或反爬绕过。
 - 真实模型质量与费用取决于用户选择的 Hermes 提供商；Worker 只能保证提案边界和确定性落盘，不能保证模型陈述必然正确。
 - 第一阶段仅支持 Obsidian 桌面版和本地文件系统 Vault。

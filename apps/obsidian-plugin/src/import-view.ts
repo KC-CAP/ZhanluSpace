@@ -150,6 +150,11 @@ export class ImportView extends ItemView {
       await this.copyDiffCommand();
       return;
     }
+    if (action === "open-pr") {
+      const url = this.completed?.result.pr_url;
+      if (url) window.open(url, "_blank", "noopener");
+      return;
+    }
     if (action === "confirm") {
       await this.confirmMerge();
       return;

@@ -85,6 +85,7 @@ const completedEventSchema = z
         changed_files: z.array(z.string()),
         ingest_manifest: z.string(),
         risk_reasons: z.array(z.string()),
+        pr_url: z.string().url().nullable().optional(),
       })
       .strict(),
   })

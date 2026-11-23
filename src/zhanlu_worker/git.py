@@ -50,7 +50,38 @@ class GitController:
     def preflight(self) -> None:
         self._preflight()
 
-    def apply(self, change_set: ChangeSet, risk: RiskAssessment) -> GitResult:
+    def team_preflight(self) -> None:
+        """Require a clean local main and fast-forward it to origin/main."""
+        self._preflight()
+        remote = self._run("remote", "get-url", "origin")
+        self._require(remote, "TEAM_REMOTE_MISSING")
+        self._require(self._run("fetch", "--quiet", "origin", "main"), "TEAM_FETCH_FAILED")
+        remote_main = self._run("rev-parse", "--verify", "refs/remotes/origin/main")
+        self._require(remote_main, "TEAM_REMOTE_MAIN_MISSING")
+        local_main = self._rev_parse("main")
+        remote_head = remote_main.stdout.strip()
+        if local_main == remote_head:
+            return
+        ancestor = self._run("merge-base", "--is-ancestor", "main", "origin/main")
+        if ancestor.returncode != 0:
+            raise GitError("TEAM_MAIN_DIVERGED", "local main diverges from origin/main")
+        self._require(self._run("merge", "--ff-only", "origin/main"), "TEAM_SYNC_FAILED")
+
+    def push_branch(self, branch: str) -> None:
+        if not re.fullmatch(r"knowledge/[0-9]{8}-[a-z0-9][a-z0-9-]{0,63}", branch):
+            raise GitError("INVALID_PROPOSAL_BRANCH", branch)
+        self._require(
+            self._run("push", "--set-upstream", "origin", branch),
+            "TEAM_PUSH_FAILED",
+        )
+
+    def apply(
+        self,
+        change_set: ChangeSet,
+        risk: RiskAssessment,
+        *,
+        auto_merge: bool = True,
+    ) -> GitResult:
         self._preflight()
         branch = self._branch_name(change_set.ingest_id)
         if not change_set.changes:
@@ -94,7 +125,7 @@ class GitController:
             committed = True
             head = self._rev_parse("HEAD")
             self._require(self._run("switch", "main"), "RETURN_TO_MAIN_FAILED")
-            if risk.level == "high":
+            if risk.level == "high" or not auto_merge:
                 return GitResult("ready", branch, head)
             merge = self._run("merge", "--ff-only", branch)
             if merge.returncode != 0:
