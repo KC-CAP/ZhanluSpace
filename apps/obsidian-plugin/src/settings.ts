@@ -9,6 +9,7 @@ export { isSafePythonModule } from "./settings-validation";
 
 export interface ZhanluSettings {
   mode: "personal" | "team";
+  teamRepository: string;
   pythonExecutable: string;
   workerModule: string;
   hermesExecutable: string;
@@ -19,12 +20,13 @@ export interface ZhanluSettings {
 
 export const DEFAULT_SETTINGS: ZhanluSettings = {
   mode: "personal",
+  teamRepository: "",
   pythonExecutable: "python",
   workerModule: "zhanlu_worker",
   hermesExecutable: "hermes",
   hermesProfile: "default",
   jobTimeoutSeconds: 300,
-  dataDestination: "Hermes 当前模型提供商（素材正文会被发送给该提供商）",
+  dataDestination: "素材正文发送给 Hermes 模型提供商；团队模式会将来源和知识变更推送到 GitHub origin 仓库",
 };
 
 export interface SettingsHost {
@@ -59,6 +61,8 @@ export class ZhanluSettingTab extends PluginSettingTab {
           }
         });
       });
+
+    this.textSetting("团队 GitHub 仓库", "团队模式必填，格式：owner/repository；必须与 origin 的 fetch/push 地址一致。", "teamRepository");
 
     this.textSetting("Python 可执行文件", "建议使用已安装 zhanlu-worker 的虚拟环境 Python。", "pythonExecutable");
     this.textSetting("Worker 模块", "默认：zhanlu_worker", "workerModule");

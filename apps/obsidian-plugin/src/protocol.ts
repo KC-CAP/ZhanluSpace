@@ -29,6 +29,8 @@ const startRequestSchema = z
     type: z.literal("start"),
     job_id: jobId,
     vault_path: absolutePath,
+    mode: z.enum(["personal", "team"]).nullable().optional(),
+    team_repository: z.string().nullable().optional(),
     input: z.discriminatedUnion("kind", [fileInputSchema, urlInputSchema]),
   })
   .strict();
@@ -39,6 +41,8 @@ const confirmRequestSchema = z
     type: z.literal("confirm"),
     job_id: jobId,
     vault_path: absolutePath,
+    mode: z.enum(["personal", "team"]).nullable().optional(),
+    team_repository: z.string().nullable().optional(),
     branch,
     expected_head: commitHash,
   })

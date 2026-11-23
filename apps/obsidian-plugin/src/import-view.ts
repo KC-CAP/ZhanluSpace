@@ -192,6 +192,10 @@ export class ImportView extends ItemView {
       type: "start",
       job_id: jobId,
       vault_path: this.host.getVaultPath(),
+      mode: this.host.settings.mode,
+      ...(this.host.settings.mode === "team"
+        ? { team_repository: this.host.settings.teamRepository.trim() }
+        : {}),
       input,
     };
     this.screen = { kind: "running", state: "queued", message: "准备启动本地 Worker", ...this.shared() };
@@ -213,6 +217,10 @@ export class ImportView extends ItemView {
       type: "confirm",
       job_id: randomUUID(),
       vault_path: this.host.getVaultPath(),
+      mode: this.host.settings.mode,
+      ...(this.host.settings.mode === "team"
+        ? { team_repository: this.host.settings.teamRepository.trim() }
+        : {}),
       branch: event.result.branch,
       expected_head: event.result.head,
     };
@@ -260,7 +268,9 @@ export class ImportView extends ItemView {
   private shared(): Pick<ImportScreenState, "profile" | "dataDestination"> {
     return {
       profile: this.host.settings.hermesProfile || "默认配置",
-      dataDestination: this.host.settings.dataDestination,
+      dataDestination: this.host.settings.mode === "team"
+        ? `${this.host.settings.dataDestination}；GitHub 仓库：${this.host.settings.teamRepository || "请在设置中填写 owner/repository"}`
+        : this.host.settings.dataDestination,
     };
   }
 

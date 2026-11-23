@@ -19,20 +19,30 @@ class GitHubPullRequests:
         self.vault_root = vault_root.resolve(strict=True)
         self.timeout_seconds = timeout_seconds
 
-    def create_or_update_pr(self, branch: str, change_set: ChangeSet) -> str:
+    def create_or_update_pr(
+        self,
+        branch: str,
+        change_set: ChangeSet,
+        *,
+        repo: str,
+        risk_reasons: tuple[str, ...] = (),
+    ) -> str:
         title = f"knowledge: ingest {change_set.ingest_id}"
-        body = render_pr_body(change_set)
-        existing = self._run("pr", "view", branch, "--json", "url", "--jq", ".url", check=False)
+        body = render_pr_body(change_set, risk_reasons=risk_reasons)
+        existing = self._run(
+            "pr", "list", "--repo", repo, "--head", branch, "--base", "main",
+            "--state", "open", "--json", "url", "--jq", ".[0].url // empty",
+        )
         if existing.returncode == 0 and existing.stdout.strip():
             url = existing.stdout.strip()
             self._require(
-                self._run("pr", "edit", branch, "--title", title, "--body", body),
+                self._run("pr", "edit", url, "--repo", repo, "--title", title, "--body", body),
                 "GITHUB_PR_UPDATE_FAILED",
             )
             return url
         result = self._run(
             "pr", "create", "--head", branch, "--base", "main",
-            "--title", title, "--body", body, check=False,
+            "--title", title, "--body", body, "--repo", repo, check=False,
         )
         self._require(result, "GITHUB_PR_CREATE_FAILED")
         url = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else ""
@@ -59,11 +69,12 @@ class GitHubPullRequests:
     @staticmethod
     def _require(result: subprocess.CompletedProcess[str], code: str) -> None:
         if result.returncode != 0:
-            detail = (result.stderr or result.stdout or "GitHub CLI command failed").strip()
-            raise GitHubError(code, detail[:1000])
+            raise GitHubError(code, "GitHub CLI request failed; check `gh auth status`, repository access, and network")
 
 
-def render_pr_body(change_set: ChangeSet) -> str:
+def render_pr_body(
+    change_set: ChangeSet, *, risk_reasons: tuple[str, ...] = ()
+) -> str:
     lines = [
         "## Zhanlu Knowledge change",
         "",
@@ -75,6 +86,6 @@ def render_pr_body(change_set: ChangeSet) -> str:
     ]
     lines.extend(f"- `{change.operation}` `{change.path.as_posix()}`" for change in change_set.changes)
     lines.extend(["", "### Risk notes"])
-    lines.extend(f"- {warning}" for warning in change_set.warnings)
+    lines.extend(f"- {reason}" for reason in (*change_set.warnings, *risk_reasons))
     lines.extend(["", "Generated from the validated manifest and Git change set; review the Files changed tab before approval."])
     return "\n".join(lines)

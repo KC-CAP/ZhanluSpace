@@ -9,6 +9,8 @@ import pytest
 
 from zhanlu_worker.compiler import ChangeCompiler, ChangeSet, CompileMetadata, FileChange
 from zhanlu_worker.git import GitController, GitError
+from zhanlu_worker.git import _github_repository
+from zhanlu_worker.git import _github_repository
 from zhanlu_worker.github import GitHubPullRequests, render_pr_body
 from zhanlu_worker.proposals import CompilationProposal
 from zhanlu_worker.risk import RiskAssessment
@@ -38,7 +40,7 @@ def _repository(tmp_path: Path) -> Path:
     root = tmp_path / "vault"
     root.mkdir()
     _write_basic_vault(root)
-    (root / ".gitignore").write_text(".knowledge-runtime/\n", encoding="utf-8")
+    (root / ".gitignore").write_text(".knowledge-runtime/\nteam-shared.md\n", encoding="utf-8")
     _git(root, "init", "-b", "main")
     _git(root, "config", "user.name", "Zhanlu Test")
     _git(root, "config", "user.email", "zhanlu@example.invalid")
@@ -156,11 +158,14 @@ def test_team_change_stays_on_contribution_branch_even_when_low_risk(
     assert _git(root, "status", "--porcelain").stdout == ""
 
 
-def test_team_preflight_fast_forwards_clean_main_to_origin(tmp_path: Path) -> None:
+def test_team_preflight_fast_forwards_clean_main_to_origin(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     root = _repository(tmp_path)
     remote = tmp_path / "team.git"
     _git(tmp_path, "init", "--bare", str(remote))
     _git(root, "remote", "add", "origin", str(remote))
+    monkeypatch.setattr("zhanlu_worker.git._github_repository", lambda _: "team/vault")
     _git(root, "push", "--set-upstream", "origin", "main")
     peer = tmp_path / "peer"
     _git(tmp_path, "clone", str(remote), str(peer))
@@ -173,11 +178,87 @@ def test_team_preflight_fast_forwards_clean_main_to_origin(tmp_path: Path) -> No
     _git(peer, "commit", "-m", "team change")
     _git(peer, "push", "origin", "main")
 
-    _controller(root).team_preflight()
+    _controller(root).team_preflight("team/vault")
 
     assert _git(root, "rev-parse", "main").stdout == _git(root, "rev-parse", "origin/main").stdout
     assert (root / "team.md").read_text(encoding="utf-8") == "approved team change\n"
     assert _git(root, "status", "--porcelain").stdout == ""
+
+
+def test_team_preflight_refuses_to_overwrite_ignored_local_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = _repository(tmp_path)
+    remote = tmp_path / "team.git"
+    _git(tmp_path, "init", "--bare", str(remote))
+    _git(root, "remote", "add", "origin", str(remote))
+    monkeypatch.setattr("zhanlu_worker.git._github_repository", lambda _: "team/vault")
+    _git(root, "push", "--set-upstream", "origin", "main")
+    peer = tmp_path / "peer"
+    _git(tmp_path, "clone", str(remote), str(peer))
+    _git(peer, "fetch", "origin", "main")
+    _git(peer, "switch", "-C", "main", "origin/main")
+    _git(peer, "config", "user.name", "Team Peer")
+    _git(peer, "config", "user.email", "peer@example.invalid")
+    (peer / "team-shared.md").write_text("remote version\n", encoding="utf-8")
+    _git(peer, "add", "-f", "team-shared.md")
+    _git(peer, "commit", "-m", "tracked shared file")
+    _git(peer, "push", "origin", "main")
+    local_file = root / "team-shared.md"
+    local_file.write_text("local ignored version\n", encoding="utf-8")
+    baseline = _git(root, "rev-parse", "main").stdout
+
+    with pytest.raises(GitError, match="TEAM_SYNC_FAILED"):
+        _controller(root).team_preflight("team/vault")
+
+    assert local_file.read_text(encoding="utf-8") == "local ignored version\n"
+    assert _git(root, "rev-parse", "main").stdout == baseline
+
+
+@pytest.mark.parametrize(
+    ("remote", "expected"),
+    (
+        ("https://github.com/team/vault.git", "team/vault"),
+        ("git@github.com:team/vault.git", "team/vault"),
+        ("ssh://git@github.com/team/vault.git", "team/vault"),
+        ("https://example.com/team/vault.git", None),
+        ("https://user:token@github.com/team/vault.git", None),
+    ),
+)
+def test_team_remote_must_be_unambiguous_github_url(remote: str, expected: str | None) -> None:
+    assert _github_repository(remote) == expected
+
+
+def test_team_preflight_rejects_different_fetch_and_push_repositories(tmp_path: Path) -> None:
+    root = _repository(tmp_path)
+    _git(root, "remote", "add", "origin", "https://github.com/team/vault.git")
+    _git(root, "remote", "set-url", "--push", "origin", "https://github.com/other/vault.git")
+
+    with pytest.raises(GitError, match="TEAM_REMOTE_MISMATCH"):
+        _controller(root).team_preflight("other/vault")
+
+
+@pytest.mark.parametrize(
+    ("remote", "expected"),
+    (
+        ("https://github.com/team/vault.git", "team/vault"),
+        ("git@github.com:team/vault.git", "team/vault"),
+        ("ssh://git@github.com/team/vault.git", "team/vault"),
+        ("https://example.com/team/vault.git", None),
+        ("https://user:token@github.com/team/vault.git", None),
+    ),
+)
+def test_team_remote_must_be_unambiguous_github_url(remote: str, expected: str | None) -> None:
+    assert _github_repository(remote) == expected
+
+
+def test_team_preflight_rejects_different_fetch_and_push_repositories(tmp_path: Path) -> None:
+    root = _repository(tmp_path)
+    _git(root, "remote", "add", "origin", "https://github.com/team/vault.git")
+    _git(root, "remote", "set-url", "--push", "origin", "https://github.com/other/vault.git")
+
+    with pytest.raises(GitError, match="TEAM_REMOTE_MISMATCH"):
+        _controller(root).team_preflight("team/vault")
 
 
 def test_github_pr_body_is_derived_from_changes_without_source_text(tmp_path: Path) -> None:
@@ -199,7 +280,7 @@ def test_github_client_creates_reviewable_pr_with_argument_list(
     change_set = _change_set(tmp_path, root)
     calls: list[tuple[list[str], dict[str, object]]] = []
     responses = [
-        subprocess.CompletedProcess([], 1, "", "no pull request"),
+        subprocess.CompletedProcess([], 0, "", ""),
         subprocess.CompletedProcess([], 0, "https://github.com/team/vault/pull/7\n", ""),
     ]
 
@@ -210,11 +291,11 @@ def test_github_client_creates_reviewable_pr_with_argument_list(
     monkeypatch.setattr("zhanlu_worker.github.subprocess.run", fake_run)
 
     url = GitHubPullRequests(root).create_or_update_pr(
-        "knowledge/20260803-55555555", change_set
+        "knowledge/20260803-55555555", change_set, repo="team/vault"
     )
 
     assert url == "https://github.com/team/vault/pull/7"
-    assert calls[0][0][:4] == ["gh", "pr", "view", "knowledge/20260803-55555555"]
+    assert calls[0][0][:4] == ["gh", "pr", "list", "--repo"]
     create_args = calls[1][0]
     assert create_args[:3] == ["gh", "pr", "create"]
     assert "--draft" not in create_args

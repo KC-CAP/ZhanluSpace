@@ -23,6 +23,7 @@ JobState: TypeAlias = Literal[
 ]
 RiskLevel: TypeAlias = Literal["low", "high"]
 Outcome: TypeAlias = Literal["merged", "ready", "no_change"]
+VaultMode: TypeAlias = Literal["personal", "team"]
 
 _BRANCH_PATTERN = re.compile(r"^knowledge/[0-9]{8}-[a-z0-9][a-z0-9-]{0,63}$")
 _COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
@@ -59,6 +60,8 @@ class RequestBase(ProtocolModel):
     version: Literal[1]
     job_id: UUID
     vault_path: str
+    mode: VaultMode | None = None
+    team_repository: str | None = None
 
     _absolute_vault = field_validator("vault_path")(_require_absolute_path)
 

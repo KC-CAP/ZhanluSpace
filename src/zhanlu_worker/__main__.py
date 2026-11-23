@@ -32,7 +32,7 @@ def run_cli(stdin: TextIO, stdout: TextIO, stderr: TextIO, runner) -> int:
     adapter = TypeAdapter(Event)
 
     def emit(event: Event) -> None:
-        stdout.write(adapter.dump_json(event).decode("utf-8") + "\n")
+        stdout.write(adapter.dump_json(event, exclude_none=True).decode("utf-8") + "\n")
         stdout.flush()
 
     try:
@@ -82,7 +82,6 @@ def build_runner() -> JobRunner:
         adapter,
         hermes_version=os.environ.get("ZHANLU_HERMES_VERSION", "unknown"),
         hermes_profile=profile,
-        team_mode=os.environ.get("ZHANLU_MODE", "personal") == "team",
     )
 
 

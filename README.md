@@ -74,16 +74,16 @@ hermes --ignore-rules -z "Return one JSON object with key smoke and value ok."
 
 ### 4. 团队模式预览
 
-团队 Vault 必须是 GitHub 仓库的本地克隆，默认分支为 `main`，远端名为 `origin`。每位成员使用自己的 GitHub 账号，并在本机安装 GitHub CLI 后执行 `gh auth login`。在插件设置中将“知识库模式”切换为“团队”。开始导入前，Worker 会从 `origin/main` 同步；每次变更会推送到成员分支并创建可直接审核的 PR。
+团队 Vault 必须是 GitHub 仓库的本地克隆，默认分支为 `main`，远端名为 `origin`。每位成员使用自己的 GitHub 账号，并在本机安装 GitHub CLI 后执行 `gh auth login`。在插件设置中将“知识库模式”切换为“团队”，并填写精确的 `owner/repository`；Worker 会验证它与 `origin` 的 fetch/push 地址相同，并在导入页显示目标仓库。开始导入前，Worker 会从 `origin/main` 同步；每次变更会推送到成员分支并创建可直接审核的 PR。
 
-目前团队模式还没有自动 Knowledge CI 和自动变更摘要。启用前，仓库管理员必须在 GitHub 手动保护 `main`：禁止直接 push，要求至少一个由非提交者作出的批准，并要求现有检查通过。未配置这些规则时，GitHub 可能允许绕过审核合并，因此当前团队模式应先在测试仓库试用。只有一位 GitHub 成员时，无法实现独立审批；请继续使用个人模式。
+目前团队模式还没有自动 Knowledge CI 和自动变更摘要。启用前，仓库管理员必须在 GitHub 手动保护 `main`：禁止直接 push，要求至少一个由非提交者作出的批准，并要求现有检查通过。未配置这些规则时，GitHub 可能允许绕过审核合并，因此当前团队模式应先在测试仓库试用。只有一位 GitHub 成员时，无法实现独立审批；请继续使用个人模式。发布失败时，插件会显示保留在本地的贡献分支和提交，需手动恢复推送或创建 PR。
 
 ## 使用与恢复
 
 导入页会在开始前显示 Hermes 配置和数据去向。运行中依次显示排队、读取、提取、编译、校验、提交与合入；随时可以取消。
 
-- 低风险结果：位于 `main`，可使用插件复制的 `git show --stat --oneline <head>` 检查提交。
-- 高风险结果：位于 `knowledge/<日期>-<任务>`，先运行复制的 `git diff main...<branch>`，再点击“确认合入”。
+- 个人模式低风险结果：位于 `main`，可使用插件复制的 `git show --stat --oneline <head>` 检查提交。
+- 个人模式高风险结果：位于 `knowledge/<日期>-<任务>`，先运行复制的 `git diff main...<branch>`，再点击“确认合入”。团队模式的变更始终保留在贡献分支，审核和合并在 GitHub PR 中完成。
 - 失败作业：诊断与暂存材料位于 `.knowledge-runtime/jobs/<job-id>/`，该目录不进入 Git。
 - 工作区不干净：先自行 commit 或 stash；Worker 不会替用户丢弃修改。
 - 高风险提案暂不接受：保留分支即可；确认前不要改写或强推该分支。
@@ -97,7 +97,7 @@ hermes --ignore-rules -z "Return one JSON object with key smoke and value ok."
 ## 明确限制
 
 - 第一阶段只接受单个 Markdown/TXT 文件或 URL；不支持批量目录、PDF、DOCX、PPTX、XLSX、图片 OCR、音频或视频。
-- 团队 PR 创建已进入预览；尚未实现 Knowledge CI、自动 PR 摘要、CODEOWNERS 模板生成、审核状态跟踪或成员一键同步。
+- 团队 PR 创建已进入预览；尚未实现 Knowledge CI、自动 PR 摘要、CODEOWNERS 模板生成、审核状态跟踪、发布失败自动续传或成员一键同步。
 - URL 获取仅处理可直接访问的 HTML，不负责登录态、付费墙、复杂 JavaScript 渲染或反爬绕过。
 - 真实模型质量与费用取决于用户选择的 Hermes 提供商；Worker 只能保证提案边界和确定性落盘，不能保证模型陈述必然正确。
 - 第一阶段仅支持 Obsidian 桌面版和本地文件系统 Vault。
@@ -111,7 +111,7 @@ hermes --ignore-rules -z "Return one JSON object with key smoke and value ok."
   -PnpmPath "C:\path\to\pnpm.cmd"
 ```
 
-该命令运行 Python 单元/E2E、覆盖率、插件测试、类型检查、生产构建和 `git diff --check`。当前基线为 96 个 Python 测试、36 个插件测试，Worker 覆盖率 92%。
+该命令运行 Python 单元/E2E、覆盖率、插件测试、类型检查、生产构建和 `git diff --check`。
 
 ## 设计资料
 

@@ -50,22 +50,42 @@ class GitController:
     def preflight(self) -> None:
         self._preflight()
 
-    def team_preflight(self) -> None:
-        """Require a clean local main and fast-forward it to origin/main."""
+    def team_preflight(self, expected_repository: str) -> str:
+        """Validate the GitHub destination and fast-forward clean main."""
         self._preflight()
-        remote = self._run("remote", "get-url", "origin")
-        self._require(remote, "TEAM_REMOTE_MISSING")
-        self._require(self._run("fetch", "--quiet", "origin", "main"), "TEAM_FETCH_FAILED")
+        fetch_urls = self._require(self._run("remote", "get-url", "--all", "origin"), "TEAM_REMOTE_MISSING").stdout.splitlines()
+        push_urls = self._require(self._run("remote", "get-url", "--push", "--all", "origin"), "TEAM_REMOTE_MISSING").stdout.splitlines()
+        if len(fetch_urls) != 1 or len(push_urls) != 1:
+            raise GitError("TEAM_REMOTE_AMBIGUOUS", "origin must have one fetch URL and one push URL")
+        fetch_repo = _github_repository(fetch_urls[0])
+        push_repo = _github_repository(push_urls[0])
+        if fetch_repo is None or push_repo is None:
+            raise GitError("TEAM_REMOTE_NOT_GITHUB", "origin fetch and push URLs must target github.com")
+        if fetch_repo != push_repo:
+            raise GitError("TEAM_REMOTE_MISMATCH", "origin fetch and push URLs target different repositories")
+        if expected_repository != fetch_repo:
+            raise GitError(
+                "TEAM_REPOSITORY_MISMATCH",
+                "configured GitHub repository does not match origin fetch/push URLs",
+            )
+        self._require(
+            self._run("fetch", "--quiet", "origin", "+refs/heads/main:refs/remotes/origin/main"),
+            "TEAM_FETCH_FAILED",
+        )
         remote_main = self._run("rev-parse", "--verify", "refs/remotes/origin/main")
         self._require(remote_main, "TEAM_REMOTE_MAIN_MISSING")
         local_main = self._rev_parse("main")
         remote_head = remote_main.stdout.strip()
         if local_main == remote_head:
-            return
+            return fetch_repo
         ancestor = self._run("merge-base", "--is-ancestor", "main", "origin/main")
         if ancestor.returncode != 0:
             raise GitError("TEAM_MAIN_DIVERGED", "local main diverges from origin/main")
-        self._require(self._run("merge", "--ff-only", "origin/main"), "TEAM_SYNC_FAILED")
+        self._require(
+            self._run("merge", "--ff-only", "--no-overwrite-ignore", "origin/main"),
+            "TEAM_SYNC_FAILED",
+        )
+        return fetch_repo
 
     def push_branch(self, branch: str) -> None:
         if not re.fullmatch(r"knowledge/[0-9]{8}-[a-z0-9][a-z0-9-]{0,63}", branch):
@@ -302,4 +322,19 @@ def _atomic_write(path: Path, content: bytes) -> None:
 
 def _command_message(result: subprocess.CompletedProcess[str]) -> str:
     message = (result.stderr or result.stdout or "git command failed").strip()
-    return re.sub(r"\b(?:ghp|github_pat|sk)-[A-Za-z0-9_-]+", "[REDACTED]", message)
+    message = re.sub(r"\b(?:ghp_|github_pat_|gho_|ghu_|ghs_|ghr_|sk-)[A-Za-z0-9_-]+", "[REDACTED]", message)
+    return re.sub(r"(https?://)[^/@\s]+:[^/@\s]+@", r"\1[REDACTED]@", message)
+
+
+def _github_repository(remote_url: str) -> str | None:
+    match = re.fullmatch(
+        r"(?:https://github\.com/|ssh://git@github\.com/|git@github\.com:)([^/]+)/([^/]+?)(?:\.git)?/?",
+        remote_url.strip(),
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    owner, repository = match.groups()
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+", owner) or not re.fullmatch(r"[A-Za-z0-9_.-]+", repository):
+        return None
+    return f"{owner}/{repository.removesuffix('.git')}"
